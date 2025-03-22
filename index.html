@@ -63,6 +63,21 @@
         #restart-button:hover {
             background-color: #45a049;
         }
+        .jam-link {
+            font-family: 'system-ui', sans-serif;
+            position: fixed;
+            bottom: -1px;
+            right: -1px;
+            padding: 7px;
+            font-size: 14px;
+            font-weight: bold;
+            background: #fff;
+            color: #000;
+            text-decoration: none;
+            border-top-left-radius: 12px;
+            z-index: 10000;
+            border: 1px solid #fff;
+        }
     </style>
 </head>
 <body>
@@ -72,6 +87,7 @@
         <h1>Game Over!</h1>
         <button id="restart-button">Play Again</button>
     </div>
+    <a target="_blank" href="https://jam.pieter.com" class="jam-link">🕹️ Vibe Jam 2025</a>
     <script type="module" src="/main.js"></script>
 </body>
 </html>

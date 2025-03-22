@@ -274,7 +274,7 @@ export class AudioManager {
         // Create container for music controls
         const musicControls = document.createElement('div');
         musicControls.style.position = 'absolute';
-        musicControls.style.bottom = '10px';
+        musicControls.style.bottom = '50px';  // Moved up from 10px to 50px
         musicControls.style.right = '10px';
         musicControls.style.zIndex = '1000';
         
