@@ -43,42 +43,106 @@ export class FruitFactory {
             case 'strawberry': {
                 const group = new THREE.Group();
                 
-                // Main body - slightly conical sphere
+                // Main body - conical sphere with more realistic shape
                 const bodyGeometry = new THREE.SphereGeometry(type.radius, 32, 32);
-                // Make it slightly conical
+                
+                // Make it more conical and strawberry-shaped
                 const positions = bodyGeometry.attributes.position.array;
                 for (let i = 0; i < positions.length; i += 3) {
                     const y = positions[i + 1];
+                    
+                    // Bottom half - make more tapered
                     if (y < 0) {
-                        positions[i] *= 0.8;     // x
-                        positions[i + 2] *= 0.8; // z
+                        // Get more tapered toward the bottom
+                        const factor = 0.8 + (y / type.radius) * 0.2; // Gradually taper from 0.8 to 1.0
+                        positions[i] *= factor;     // x
+                        positions[i + 2] *= factor; // z
+                    }
+                    
+                    // Top - make slightly flatter
+                    if (y > type.radius * 0.5) {
+                        positions[i + 1] *= 0.9; // Slightly flatten the top
+                    }
+                    
+                    // Add small bumps for seeds all over surface
+                    const x = positions[i];
+                    const z = positions[i + 2];
+                    const distFromCenter = Math.sqrt(x*x + z*z) / type.radius;
+                    
+                    // Only add bumps within certain radius
+                    if (distFromCenter > 0.5 && distFromCenter < 0.95) {
+                        // Create small bumps all over surface to simulate seed texture
+                        const angle = Math.atan2(z, x);
+                        const bumpAmount = 0.03 * Math.sin(angle * 38) * Math.sin(y * 40);
+                        
+                        positions[i] += positions[i] * bumpAmount;     // x
+                        positions[i + 2] += positions[i + 2] * bumpAmount; // z
                     }
                 }
                 bodyGeometry.attributes.position.needsUpdate = true;
+                bodyGeometry.computeVertexNormals(); // Recalculate normals for proper lighting
                 
-                const body = new THREE.Mesh(
-                    bodyGeometry,
-                    new THREE.MeshPhongMaterial({ 
-                        color: type.color,
-                        shininess: 50,
-                        map: this.textureManager.strawberryTexture,
-                        bumpMap: this.textureManager.strawberryTexture,
-                        bumpScale: 0.02
-                    })
-                );
+                // Create material with enhanced properties
+                const bodyMaterial = new THREE.MeshStandardMaterial({ 
+                    color: type.color,
+                    roughness: 0.7,
+                    metalness: 0.1,
+                    map: this.textureManager.strawberryTexture,
+                    bumpMap: this.textureManager.strawberryTexture,
+                    bumpScale: 0.04,
+                    normalMap: this.textureManager.strawberryTexture,
+                    normalScale: new THREE.Vector2(0.05, 0.05),
+                    envMapIntensity: 0.8,
+                });
+                
+                const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
                 group.add(body);
                 
-                // Leaves
-                const leaves = new THREE.Mesh(
-                    new THREE.CircleGeometry(type.radius * 0.4, 5),
+                // More detailed leaves
+                const leafGroup = new THREE.Group();
+                
+                // Create multiple leaf petals
+                for (let i = 0; i < 5; i++) {
+                    const leafShape = new THREE.Shape();
+                    const leafWidth = type.radius * (0.25 + Math.random() * 0.1);
+                    const leafLength = type.radius * (0.3 + Math.random() * 0.1);
+                    
+                    // Create leaf shape
+                    leafShape.moveTo(0, 0);
+                    leafShape.quadraticCurveTo(leafWidth/2, leafLength/2, leafWidth, 0);
+                    leafShape.quadraticCurveTo(leafWidth/2, -leafLength/6, 0, 0);
+                    
+                    // Create geometry and mesh
+                    const leafGeometry = new THREE.ShapeGeometry(leafShape);
+                    const leaf = new THREE.Mesh(
+                        leafGeometry,
+                        new THREE.MeshPhongMaterial({ 
+                            color: type.leafColor,
+                            shininess: 10,
+                            side: THREE.DoubleSide
+                        })
+                    );
+                    
+                    // Position and rotate leaf
+                    leaf.rotation.x = Math.PI / 2 - Math.random() * 0.3;
+                    leaf.rotation.z = (i / 5) * Math.PI * 2;
+                    
+                    leafGroup.add(leaf);
+                }
+                
+                leafGroup.position.y = type.radius * 0.9;
+                group.add(leafGroup);
+                
+                // Add small stem
+                const stem = new THREE.Mesh(
+                    new THREE.CylinderGeometry(type.radius * 0.05, type.radius * 0.08, type.radius * 0.2, 8),
                     new THREE.MeshPhongMaterial({ 
-                        color: type.leafColor,
-                        side: THREE.DoubleSide
+                        color: 0x7A5230,
+                        shininess: 5
                     })
                 );
-                leaves.position.y = type.radius * 0.8;
-                leaves.rotation.x = -Math.PI / 2;
-                group.add(leaves);
+                stem.position.y = type.radius * 0.8;
+                group.add(stem);
                 
                 return group;
             }
@@ -89,31 +153,98 @@ export class FruitFactory {
                 // Main apple body
                 const body = new THREE.Mesh(
                     new THREE.SphereGeometry(type.radius, 32, 32),
-                    new THREE.MeshPhongMaterial({ 
+                    new THREE.MeshStandardMaterial({ 
                         color: type.color,
-                        shininess: 70,
+                        roughness: 0.7,
+                        metalness: 0.1,
                         map: this.textureManager.appleTexture,
                         bumpMap: this.textureManager.appleTexture,
-                        bumpScale: 0.01
+                        bumpScale: 0.02,
+                        normalMap: this.textureManager.appleTexture,
+                        normalScale: new THREE.Vector2(0.04, 0.04)
                     })
                 );
                 group.add(body);
                 
                 // Small indentation at top
-                const topGeometry = new THREE.CylinderGeometry(
-                    type.radius * 0.1,
-                    type.radius * 0.1,
+                const indentationGeometry = new THREE.CylinderGeometry(
+                    type.radius * 0.12,
+                    type.radius * 0.12,
                     type.radius * 0.1,
                     8
                 );
-                const top = new THREE.Mesh(
-                    topGeometry,
-                    new THREE.MeshPhongMaterial({ 
-                        color: 0x7A3D00
+                const indentation = new THREE.Mesh(
+                    indentationGeometry,
+                    new THREE.MeshStandardMaterial({ 
+                        color: 0x5A2D00,
+                        roughness: 0.9,
+                        metalness: 0
                     })
                 );
-                top.position.y = type.radius * 0.9;
-                group.add(top);
+                indentation.position.y = type.radius * 0.92;
+                group.add(indentation);
+                
+                // Add stem
+                const stemGeometry = new THREE.CylinderGeometry(
+                    type.radius * 0.03,  // top radius (thinner at top)
+                    type.radius * 0.05,  // bottom radius
+                    type.radius * 0.3,   // height
+                    8
+                );
+                
+                // Curve the stem slightly
+                const positions = stemGeometry.attributes.position.array;
+                for (let i = 0; i < positions.length; i += 3) {
+                    const y = positions[i + 1];
+                    if (y > 0) {
+                        // Apply a slight curve to one side
+                        positions[i] += type.radius * 0.05 * (y / (type.radius * 0.3));
+                    }
+                }
+                stemGeometry.attributes.position.needsUpdate = true;
+                stemGeometry.computeVertexNormals(); 
+                
+                const stem = new THREE.Mesh(
+                    stemGeometry,
+                    new THREE.MeshStandardMaterial({ 
+                        color: type.stemColor || 0x4A7023,
+                        roughness: 0.9,
+                        metalness: 0.05
+                    })
+                );
+                
+                // Position and rotate stem
+                stem.position.y = type.radius * 1.05;
+                stem.rotation.x = Math.PI / 12;  // Tilt the stem slightly
+                stem.rotation.z = Math.PI / 8;   // Rotate for natural look
+                group.add(stem);
+                
+                // Add a small leaf near the stem base
+                const leafShape = new THREE.Shape();
+                const leafWidth = type.radius * 0.25;
+                const leafLength = type.radius * 0.3;
+                
+                // Create leaf shape
+                leafShape.moveTo(0, 0);
+                leafShape.quadraticCurveTo(leafWidth/3, leafLength/2, leafWidth, 0);
+                leafShape.quadraticCurveTo(leafWidth/3, -leafLength/4, 0, 0);
+                
+                // Create leaf geometry and mesh
+                const leafGeometry = new THREE.ShapeGeometry(leafShape);
+                const leaf = new THREE.Mesh(
+                    leafGeometry,
+                    new THREE.MeshStandardMaterial({ 
+                        color: type.stemColor || 0x4A7023,
+                        roughness: 0.8,
+                        metalness: 0.05,
+                        side: THREE.DoubleSide
+                    })
+                );
+                
+                // Position and rotate the leaf
+                leaf.position.set(type.radius * 0.05, type.radius * 0.9, type.radius * 0.05);
+                leaf.rotation.set(Math.PI / 3, 0, Math.PI / 8);
+                group.add(leaf);
                 
                 return group;
             }
@@ -256,6 +387,105 @@ export class FruitFactory {
                     bumpMap: this.textureManager.melonTexture,
                     bumpScale: 0.02
                 });
+                return new THREE.Mesh(geometry, material);
+            }
+            
+            case 'orange': {
+                const group = new THREE.Group();
+                
+                // Create a more detailed orange with subtle bump mapping
+                const orangeGeometry = new THREE.SphereGeometry(type.radius, 32, 32);
+                
+                // Add subtle deformations to make the orange less perfectly round
+                const positions = orangeGeometry.attributes.position.array;
+                for (let i = 0; i < positions.length; i += 3) {
+                    const x = positions[i];
+                    const y = positions[i + 1];
+                    const z = positions[i + 2];
+                    
+                    // Calculate distance from center
+                    const distance = Math.sqrt(x*x + y*y + z*z);
+                    
+                    // Add subtle random bumps
+                    const angle = Math.atan2(z, x);
+                    const bumpFactor = 0.02 * Math.sin(angle * 10) * Math.sin(y * 12);
+                    
+                    // Apply bumps
+                    positions[i] += positions[i] * bumpFactor;
+                    positions[i + 1] += positions[i + 1] * bumpFactor;
+                    positions[i + 2] += positions[i + 2] * bumpFactor;
+                    
+                    // Add a slight "squashed" effect on top and bottom (pole flattening)
+                    if (Math.abs(y / type.radius) > 0.8) {
+                        positions[i + 1] *= 0.95;
+                    }
+                }
+                
+                orangeGeometry.attributes.position.needsUpdate = true;
+                orangeGeometry.computeVertexNormals();
+                
+                const orangeMaterial = new THREE.MeshPhongMaterial({
+                    color: type.color,
+                    shininess: 80,
+                    specular: 0x882200,
+                    map: this.textureManager.orangeTexture,
+                    bumpMap: this.textureManager.orangeTexture,
+                    bumpScale: type.bumpScale || 0.03,
+                    emissive: 0x220000,
+                    emissiveIntensity: 0.05
+                });
+                
+                const orange = new THREE.Mesh(orangeGeometry, orangeMaterial);
+                group.add(orange);
+                
+                // Add small stem/navel on top
+                const stemGroup = new THREE.Group();
+                
+                // Main stem/navel
+                const stem = new THREE.Mesh(
+                    new THREE.CylinderGeometry(type.radius * 0.05, type.radius * 0.08, type.radius * 0.06, 8),
+                    new THREE.MeshPhongMaterial({ color: 0x885522 })
+                );
+                stemGroup.add(stem);
+                
+                // Small leaf near stem
+                const leafShape = new THREE.Shape();
+                const leafSize = type.radius * 0.15;
+                
+                leafShape.moveTo(0, 0);
+                leafShape.quadraticCurveTo(leafSize * 0.5, leafSize, leafSize, 0);
+                leafShape.quadraticCurveTo(leafSize * 0.5, -leafSize * 0.3, 0, 0);
+                
+                const leaf = new THREE.Mesh(
+                    new THREE.ShapeGeometry(leafShape),
+                    new THREE.MeshPhongMaterial({ 
+                        color: 0x2D5A27,
+                        side: THREE.DoubleSide
+                    })
+                );
+                leaf.rotation.set(Math.PI/2 - 0.2, 0, 0);
+                leaf.position.set(type.radius * 0.05, type.radius * 0.06, 0);
+                stemGroup.add(leaf);
+                
+                stemGroup.position.y = type.radius * 0.9;
+                stemGroup.rotation.x = Math.PI * 0.1;
+                group.add(stemGroup);
+                
+                return group;
+            }
+            
+            case 'grape': {
+                // Simple sphere with improved material properties
+                const geometry = new THREE.SphereGeometry(type.radius, 32, 32);
+                const material = new THREE.MeshPhongMaterial({
+                    color: type.color,
+                    shininess: 120, // High shininess for grape's waxy appearance
+                    specular: 0x8866AA,
+                    map: this.textureManager.grapeTexture,
+                    bumpMap: this.textureManager.grapeTexture,
+                    bumpScale: 0.01
+                });
+                
                 return new THREE.Mesh(geometry, material);
             }
             

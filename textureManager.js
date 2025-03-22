@@ -35,25 +35,60 @@ export class TextureManager {
      * Create all the procedural textures used for fruits
      */
     createProceduralTextures() {
-        // Orange peel texture
+        // Orange texture
         const orangeTextureSize = 512;
         const orangeCanvas = document.createElement('canvas');
         orangeCanvas.width = orangeTextureSize;
         orangeCanvas.height = orangeTextureSize;
         const orangeCtx = orangeCanvas.getContext('2d');
         
-        // Create dimpled pattern
-        orangeCtx.fillStyle = '#FF8C00';
+        // Create base gradient for more realistic coloring
+        const orangeGradient = orangeCtx.createRadialGradient(
+            orangeTextureSize/2, orangeTextureSize/2, 0,
+            orangeTextureSize/2, orangeTextureSize/2, orangeTextureSize/2
+        );
+        orangeGradient.addColorStop(0, '#FFAA20'); // Brighter in center
+        orangeGradient.addColorStop(0.7, '#FF8C00'); // Standard orange
+        orangeGradient.addColorStop(1, '#E67300'); // Darker at edges
+        
+        // Fill with gradient
+        orangeCtx.fillStyle = orangeGradient;
         orangeCtx.fillRect(0, 0, orangeTextureSize, orangeTextureSize);
         
-        for (let i = 0; i < 1000; i++) {
+        // Add subtle noise texture
+        const orangeImageData = orangeCtx.getImageData(0, 0, orangeTextureSize, orangeTextureSize);
+        const orangeData = orangeImageData.data;
+        
+        for (let i = 0; i < orangeData.length; i += 4) {
+            const noise = Math.random() * 15 - 5;
+            orangeData[i] = Math.max(0, Math.min(255, orangeData[i] + noise));     // R
+            orangeData[i + 1] = Math.max(0, Math.min(255, orangeData[i + 1] + noise)); // G
+            orangeData[i + 2] = Math.max(0, Math.min(255, orangeData[i + 2] + noise)); // B
+        }
+        
+        orangeCtx.putImageData(orangeImageData, 0, 0);
+        
+        // Create dimpled pattern - more realistic
+        for (let i = 0; i < 1500; i++) {
             const x = Math.random() * orangeTextureSize;
             const y = Math.random() * orangeTextureSize;
-            const radius = 2 + Math.random() * 3;
+            const radius = 1 + Math.random() * 3;
             
+            // Main dimple
             orangeCtx.beginPath();
             orangeCtx.arc(x, y, radius, 0, Math.PI * 2);
-            orangeCtx.fillStyle = 'rgba(255, 160, 0, 0.5)';
+            
+            // Create realistic dimple effect with light and shadow
+            const dimpleGradient = orangeCtx.createRadialGradient(
+                x, y, 0,
+                x, y, radius
+            );
+            
+            dimpleGradient.addColorStop(0, 'rgba(255, 180, 50, 0.4)'); // Lighter center
+            dimpleGradient.addColorStop(0.5, 'rgba(230, 115, 0, 0.4)'); // Medium orange
+            dimpleGradient.addColorStop(1, 'rgba(180, 90, 0, 0.4)'); // Darker edge
+            
+            orangeCtx.fillStyle = dimpleGradient;
             orangeCtx.fill();
         }
         
@@ -68,17 +103,79 @@ export class TextureManager {
         strawberryCanvas.height = strawberryTextureSize;
         const strawberryCtx = strawberryCanvas.getContext('2d');
         
-        // Create seed pattern
-        strawberryCtx.fillStyle = '#FF2052';
+        // Create gradient for more realistic coloring
+        const gradient = strawberryCtx.createRadialGradient(
+            strawberryTextureSize/2, strawberryTextureSize/2, 0,
+            strawberryTextureSize/2, strawberryTextureSize/2, strawberryTextureSize/2
+        );
+        gradient.addColorStop(0, '#FF4070'); // Brighter, more vibrant red in center
+        gradient.addColorStop(0.5, '#FF2052'); // Standard strawberry red
+        gradient.addColorStop(0.85, '#E01040'); // Darker red toward edges
+        gradient.addColorStop(1, '#C00030'); // Deep red at very edge for better depth
+        
+        // Fill with gradient
+        strawberryCtx.fillStyle = gradient;
         strawberryCtx.fillRect(0, 0, strawberryTextureSize, strawberryTextureSize);
         
-        for (let i = 0; i < 500; i++) {
+        // Add subtle noise texture for more organic look
+        const imageData = strawberryCtx.getImageData(0, 0, strawberryTextureSize, strawberryTextureSize);
+        const data = imageData.data;
+        
+        for (let i = 0; i < data.length; i += 4) {
+            const noise = Math.random() * 20 - 7; // Increased variation for more texture
+            data[i] = Math.max(0, Math.min(255, data[i] + noise));     // R
+            data[i + 1] = Math.max(0, Math.min(255, data[i + 1] + noise * 0.6)); // G - less effect on green
+            data[i + 2] = Math.max(0, Math.min(255, data[i + 2] + noise * 0.4)); // B - even less on blue
+        }
+        
+        strawberryCtx.putImageData(imageData, 0, 0);
+        
+        // Add surface texture to simulate strawberry skin between seeds
+        for (let i = 0; i < 2000; i++) {
             const x = Math.random() * strawberryTextureSize;
             const y = Math.random() * strawberryTextureSize;
+            const size = 0.5 + Math.random() * 1.5;
             
             strawberryCtx.beginPath();
-            strawberryCtx.ellipse(x, y, 2, 1, 0, 0, Math.PI * 2);
-            strawberryCtx.fillStyle = '#FFE5E5';
+            strawberryCtx.arc(x, y, size, 0, Math.PI * 2);
+            // Vary the alpha for subtlety
+            const alpha = 0.05 + Math.random() * 0.1;
+            strawberryCtx.fillStyle = `rgba(0, 0, 0, ${alpha})`;
+            strawberryCtx.fill();
+        }
+        
+        // Add more detailed and realistic seeds
+        for (let i = 0; i < 1000; i++) {
+            const x = Math.random() * strawberryTextureSize;
+            const y = Math.random() * strawberryTextureSize;
+            const seedSize = 1.2 + Math.random() * 1.8;
+            const angle = Math.random() * Math.PI * 2;
+            
+            // Create seed
+            strawberryCtx.beginPath();
+            strawberryCtx.ellipse(x, y, seedSize * 1.2, seedSize * 0.8, angle, 0, Math.PI * 2);
+            
+            // Seed color varies from pale yellow to light yellow-white
+            const yellowness = 210 + Math.random() * 40;
+            strawberryCtx.fillStyle = `rgba(${yellowness}, ${yellowness-30}, 200, ${0.8 + Math.random() * 0.2})`;
+            strawberryCtx.fill();
+            
+            // Add slight highlight to each seed
+            strawberryCtx.beginPath();
+            strawberryCtx.ellipse(
+                x - seedSize*0.3, 
+                y - seedSize*0.2, 
+                seedSize * 0.5, 
+                seedSize * 0.3, 
+                angle, 0, Math.PI * 2
+            );
+            strawberryCtx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+            strawberryCtx.fill();
+            
+            // Add slight shadow to seeds for depth
+            strawberryCtx.beginPath();
+            strawberryCtx.ellipse(x + 0.7, y + 0.7, seedSize * 1.2, seedSize * 0.8, angle, 0, Math.PI * 2);
+            strawberryCtx.fillStyle = 'rgba(120, 0, 0, 0.2)';
             strawberryCtx.fill();
         }
         
@@ -98,43 +195,66 @@ export class TextureManager {
         watermelonCtx.fillRect(0, 0, watermelonTextureSize, watermelonTextureSize);
         
         // Add noise pattern
-        const imageData = watermelonCtx.getImageData(0, 0, watermelonTextureSize, watermelonTextureSize);
-        const data = imageData.data;
+        const imageDataWatermelon = watermelonCtx.getImageData(0, 0, watermelonTextureSize, watermelonTextureSize);
+        const dataWatermelon = imageDataWatermelon.data;
         
-        for (let i = 0; i < data.length; i += 4) {
+        for (let i = 0; i < dataWatermelon.length; i += 4) {
             const noise = Math.random() * 30 - 15;
-            data[i] = Math.max(0, Math.min(255, data[i] + noise));     // R
-            data[i + 1] = Math.max(0, Math.min(255, data[i + 1] + noise)); // G
-            data[i + 2] = Math.max(0, Math.min(255, data[i + 2] + noise)); // B
+            dataWatermelon[i] = Math.max(0, Math.min(255, dataWatermelon[i] + noise));     // R
+            dataWatermelon[i + 1] = Math.max(0, Math.min(255, dataWatermelon[i + 1] + noise)); // G
+            dataWatermelon[i + 2] = Math.max(0, Math.min(255, dataWatermelon[i + 2] + noise)); // B
         }
         
-        watermelonCtx.putImageData(imageData, 0, 0);
+        watermelonCtx.putImageData(imageDataWatermelon, 0, 0);
         
         this.watermelonTexture = new THREE.CanvasTexture(watermelonCanvas);
         this.watermelonTexture.wrapS = THREE.RepeatWrapping;
         this.watermelonTexture.wrapT = THREE.RepeatWrapping;
 
-        // Grape texture with bloom effect
+        // Grape texture with more realistic coloring and surface details
         const grapeTextureSize = 512;
         const grapeCanvas = document.createElement('canvas');
         grapeCanvas.width = grapeTextureSize;
         grapeCanvas.height = grapeTextureSize;
         const grapeCtx = grapeCanvas.getContext('2d');
         
-        grapeCtx.fillStyle = '#A020F0'; 
+        // Base gradient for grape coloring
+        const baseGrape = grapeCtx.createRadialGradient(
+            grapeTextureSize/2, grapeTextureSize/2, 0,
+            grapeTextureSize/2, grapeTextureSize/2, grapeTextureSize/2
+        );
+        baseGrape.addColorStop(0, '#9F45FF'); // Brighter purple in center
+        baseGrape.addColorStop(0.5, '#8030E0'); // Standard grape purple
+        baseGrape.addColorStop(1, '#6020B0'); // Darker purple at edges
+        
+        grapeCtx.fillStyle = baseGrape;
         grapeCtx.fillRect(0, 0, grapeTextureSize, grapeTextureSize);
         
-        // Add more prominent bloom effect
-        for (let i = 0; i < 300; i++) {
+        // Add subtle noise texture for organic look
+        const grapeImageData = grapeCtx.getImageData(0, 0, grapeTextureSize, grapeTextureSize);
+        const grapeData = grapeImageData.data;
+        
+        for (let i = 0; i < grapeData.length; i += 4) {
+            const noise = Math.random() * 10 - 5;
+            grapeData[i] = Math.max(0, Math.min(255, grapeData[i] + noise));     // R
+            grapeData[i + 1] = Math.max(0, Math.min(255, grapeData[i + 1] + noise)); // G
+            grapeData[i + 2] = Math.max(0, Math.min(255, grapeData[i + 2] + noise)); // B
+        }
+        
+        grapeCtx.putImageData(grapeImageData, 0, 0);
+        
+        // Add bloom/reflections on the grape surface
+        for (let i = 0; i < 80; i++) {
             const x = Math.random() * grapeTextureSize;
             const y = Math.random() * grapeTextureSize;
-            const radius = 20 + Math.random() * 15;
+            const radius = 15 + Math.random() * 25;
             
-            const gradient = grapeCtx.createRadialGradient(x, y, 0, x, y, radius);
-            gradient.addColorStop(0, 'rgba(255, 255, 255, 0.4)');
-            gradient.addColorStop(1, 'rgba(177, 156, 217, 0)');
+            const bloomGradient = grapeCtx.createRadialGradient(x, y, 0, x, y, radius);
+            bloomGradient.addColorStop(0, 'rgba(255, 255, 255, 0.45)');
+            bloomGradient.addColorStop(0.5, 'rgba(255, 255, 255, 0.15)');
+            bloomGradient.addColorStop(1, 'rgba(140, 80, 200, 0)');
             
-            grapeCtx.fillStyle = gradient;
+            grapeCtx.fillStyle = bloomGradient;
             grapeCtx.beginPath();
             grapeCtx.arc(x, y, radius, 0, Math.PI * 2);
             grapeCtx.fill();

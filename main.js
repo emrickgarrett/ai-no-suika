@@ -470,309 +470,49 @@ class SuikaGame {
     createFruitGeometry(type) {
         switch (type.shape) {
             case 'cherry': {
-                const group = new THREE.Group();
-                
-                // Cherry sphere
-                const cherry = new THREE.Mesh(
-                    new THREE.SphereGeometry(type.radius),
-                    new THREE.MeshPhongMaterial({ 
-                        color: type.color,
-                        shininess: 100,
-                        specular: 0x444444
-                    })
-                );
-                group.add(cherry);
-                
-                // Stem
-                const stem = new THREE.Mesh(
-                    new THREE.CylinderGeometry(0.05, 0.05, type.radius * 1.5, 8),
-                    new THREE.MeshPhongMaterial({ color: type.stemColor })
-                );
-                stem.position.y = type.radius * 0.8;
-                stem.rotation.x = Math.PI / 6;
-                group.add(stem);
-                
-                return group;
+                // Delegate to fruitFactory for consistent implementation
+                return this.fruitFactory.createFruitGeometry(type);
             }
-            
             case 'strawberry': {
-                const group = new THREE.Group();
-                
-                // Main body - slightly conical sphere
-                const bodyGeometry = new THREE.SphereGeometry(type.radius, 32, 32);
-                // Make it slightly conical
-                const positions = bodyGeometry.attributes.position.array;
-                for (let i = 0; i < positions.length; i += 3) {
-                    const y = positions[i + 1];
-                    if (y < 0) {
-                        positions[i] *= 0.8;     // x
-                        positions[i + 2] *= 0.8; // z
-                    }
-                }
-                bodyGeometry.attributes.position.needsUpdate = true;
-                
-                const body = new THREE.Mesh(
-                    bodyGeometry,
-                    new THREE.MeshPhongMaterial({ 
-                        color: type.color,
-                        shininess: 50,
-                        map: this.textureManager.strawberryTexture,
-                        bumpMap: this.textureManager.strawberryTexture,
-                        bumpScale: 0.02
-                    })
-                );
-                group.add(body);
-                
-                // Leaves
-                const leaves = new THREE.Mesh(
-                    new THREE.CircleGeometry(type.radius * 0.4, 5),
-                    new THREE.MeshPhongMaterial({ 
-                        color: type.leafColor,
-                        side: THREE.DoubleSide
-                    })
-                );
-                leaves.position.y = type.radius * 0.8;
-                leaves.rotation.x = -Math.PI / 2;
-                group.add(leaves);
-                
-                return group;
+                // Delegate to fruitFactory for consistent implementation
+                return this.fruitFactory.createFruitGeometry(type);
             }
-            
             case 'orange': {
-                // Create a bumpy sphere for the orange
-                const geometry = new THREE.SphereGeometry(type.radius, 32, 32);
-                const material = new THREE.MeshPhongMaterial({ 
-                    color: type.color,
-                    shininess: 30,
-                    map: this.textureManager.orangeTexture,
-                    bumpMap: this.textureManager.orangeTexture,
-                    bumpScale: 0.02
-                });
-                return new THREE.Mesh(geometry, material);
+                // Delegate to fruitFactory for consistent implementation
+                return this.fruitFactory.createFruitGeometry(type);
             }
-            
             case 'watermelon': {
-                const group = new THREE.Group();
-                
-                // Main sphere with texture
-                const melon = new THREE.Mesh(
-                    new THREE.SphereGeometry(type.radius, 32, 32),
-                    new THREE.MeshPhongMaterial({ 
-                        color: type.color,
-                        shininess: 30,
-                        map: this.textureManager.watermelonTexture
-                    })
-                );
-                group.add(melon);
-                
-                // Add stripes using a different approach
-                const stripeCount = 8;
-                const stripeGeometry = new THREE.CylinderGeometry(
-                    type.radius * 1.001,
-                    type.radius * 1.001,
-                    type.radius * 0.2,
-                    32,
-                    1,
-                    true
-                );
-                
-                for (let i = 0; i < stripeCount; i++) {
-                    const stripe = new THREE.Mesh(
-                        stripeGeometry,
-                        new THREE.MeshPhongMaterial({ 
-                            color: type.stripeColor,
-                            side: THREE.DoubleSide,
-                            transparent: true,
-                            opacity: 0.7
-                        })
-                    );
-                    stripe.rotation.z = (i / stripeCount) * Math.PI;
-                    stripe.rotation.x = Math.PI / 2;
-                    group.add(stripe);
-                }
-                
-                return group;
+                // Delegate to fruitFactory for consistent implementation
+                return this.fruitFactory.createFruitGeometry(type);
             }
-            
             case 'grape': {
-                const geometry = new THREE.SphereGeometry(type.radius, 32, 32);
-                const material = new THREE.MeshLambertMaterial({ 
-                    color: type.color,
-                    emissive: 0x330066,
-                    emissiveIntensity: 0.2
-                });
-                return new THREE.Mesh(geometry, material);
+                // Delegate to fruitFactory for consistent implementation
+                return this.fruitFactory.createFruitGeometry(type);
             }
-
             case 'apple': {
-                const group = new THREE.Group();
-                
-                // Main apple body
-                const body = new THREE.Mesh(
-                    new THREE.SphereGeometry(type.radius, 32, 32),
-                    new THREE.MeshPhongMaterial({ 
-                        color: type.color,
-                        shininess: 70,
-                        map: this.textureManager.appleTexture,
-                        bumpMap: this.textureManager.appleTexture,
-                        bumpScale: 0.01
-                    })
-                );
-                group.add(body);
-                
-                // Small indentation at top
-                const topGeometry = new THREE.CylinderGeometry(
-                    type.radius * 0.1,
-                    type.radius * 0.1,
-                    type.radius * 0.1,
-                    8
-                );
-                const top = new THREE.Mesh(
-                    topGeometry,
-                    new THREE.MeshPhongMaterial({ 
-                        color: 0x7A3D00
-                    })
-                );
-                top.position.y = type.radius * 0.9;
-                group.add(top);
-                
-                return group;
+                // Delegate to fruitFactory for consistent implementation
+                return this.fruitFactory.createFruitGeometry(type);
             }
-            
             case 'pear': {
-                const group = new THREE.Group();
-                
-                // Custom pear shape
-                const pearGeometry = new THREE.SphereGeometry(type.radius, 32, 32);
-                // Modify to make pear-shaped
-                const positions = pearGeometry.attributes.position.array;
-                for (let i = 0; i < positions.length; i += 3) {
-                    const y = positions[i + 1];
-                    // Make bottom wider, top narrower
-                    if (y < 0) {
-                        // Bottom half - make wider
-                        const factor = 1.0 + Math.abs(y / type.radius) * 0.3;
-                        positions[i] *= factor;       // x
-                        positions[i + 2] *= factor;   // z
-                    } else if (y > 0) {
-                        // Top half - make narrower
-                        const factor = 1.0 - (y / type.radius) * 0.3;
-                        positions[i] *= factor;       // x
-                        positions[i + 2] *= factor;   // z
-                    }
-                }
-                pearGeometry.attributes.position.needsUpdate = true;
-                
-                const body = new THREE.Mesh(
-                    pearGeometry,
-                    new THREE.MeshPhongMaterial({ 
-                        color: type.color,
-                        shininess: 30,
-                        map: this.textureManager.pearTexture,
-                        bumpMap: this.textureManager.pearTexture,
-                        bumpScale: 0.01
-                    })
-                );
-                group.add(body);
-                
-                // Add stem
-                const stemGeometry = new THREE.CylinderGeometry(
-                    type.radius * 0.05,
-                    type.radius * 0.05,
-                    type.radius * 0.3,
-                    8
-                );
-                const stem = new THREE.Mesh(
-                    stemGeometry,
-                    new THREE.MeshPhongMaterial({ 
-                        color: 0x7A3D00
-                    })
-                );
-                stem.position.y = type.radius * 1.1;
-                group.add(stem);
-                
-                return group;
+                // Delegate to fruitFactory for consistent implementation
+                return this.fruitFactory.createFruitGeometry(type);
             }
-            
             case 'peach': {
-                const geometry = new THREE.SphereGeometry(type.radius, 32, 32);
-                const material = new THREE.MeshPhongMaterial({ 
-                    color: type.color,
-                    shininess: 10,
-                    map: this.textureManager.peachTexture,
-                    bumpMap: this.textureManager.peachTexture,
-                    bumpScale: 0.005
-                });
-                return new THREE.Mesh(geometry, material);
+                // Delegate to fruitFactory for consistent implementation
+                return this.fruitFactory.createFruitGeometry(type);
             }
-            
             case 'pineapple': {
-                const group = new THREE.Group();
-                
-                // Main pineapple body - cylinder with rounded edges
-                const bodyGeometry = new THREE.CylinderGeometry(
-                    type.radius * 0.7,
-                    type.radius * 0.7,
-                    type.radius * 2,
-                    32,
-                    1
-                );
-                
-                const body = new THREE.Mesh(
-                    bodyGeometry,
-                    new THREE.MeshPhongMaterial({ 
-                        color: type.color,
-                        shininess: 20,
-                        map: this.textureManager.pineappleTexture,
-                        bumpMap: this.textureManager.pineappleTexture,
-                        bumpScale: 0.05
-                    })
-                );
-                group.add(body);
-                
-                // Top leaves
-                const leavesGeometry = new THREE.ConeGeometry(
-                    type.radius * 0.7,
-                    type.radius * 0.8,
-                    8
-                );
-                const leaves = new THREE.Mesh(
-                    leavesGeometry,
-                    new THREE.MeshPhongMaterial({ 
-                        color: 0x006400,
-                        shininess: 5
-                    })
-                );
-                leaves.position.y = type.radius * 1.4;
-                group.add(leaves);
-                
-                return group;
+                // Delegate to fruitFactory for consistent implementation
+                return this.fruitFactory.createFruitGeometry(type);
             }
-            
             case 'melon': {
-                const geometry = new THREE.SphereGeometry(type.radius, 32, 32);
-                const material = new THREE.MeshPhongMaterial({ 
-                    color: type.color,
-                    shininess: 40,
-                    map: this.textureManager.melonTexture,
-                    bumpMap: this.textureManager.melonTexture,
-                    bumpScale: 0.02
-                });
-                return new THREE.Mesh(geometry, material);
+                // Delegate to fruitFactory for consistent implementation
+                return this.fruitFactory.createFruitGeometry(type);
             }
-            
             case 'pumpkin': {
-                const geometry = new THREE.SphereGeometry(type.radius, 32, 32);
-                const material = new THREE.MeshPhongMaterial({ 
-                    color: type.color,
-                    shininess: 40,
-                    map: this.textureManager.pumpkinTexture,
-                    bumpMap: this.textureManager.pumpkinTexture,
-                    bumpScale: 0.02
-                });
-                return new THREE.Mesh(geometry, material);
+                // Delegate to fruitFactory for consistent implementation
+                return this.fruitFactory.createFruitGeometry(type);
             }
-            
             default: {
                 // Basic sphere for any other fruits
                 const geometry = new THREE.SphereGeometry(type.radius, 32, 32);
