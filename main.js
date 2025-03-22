@@ -196,6 +196,21 @@ class SuikaGame {
         });
         this.world.addContactMaterial(fruitWallContact);
         
+        // Create contact material for fruit-to-fruit interactions
+        const fruitFruitContact = new CANNON.ContactMaterial(this.fruitMaterial, this.fruitMaterial, {
+            friction: 0.5,      // Higher friction between fruits to reduce sliding
+            restitution: 0.2,   // Lower restitution (bounciness) to reduce energy in the system
+            contactEquationStiffness: 1e6,    // Softer contacts to prevent explosive forces
+            contactEquationRelaxation: 3,     // Slower relaxation for more stability
+            frictionEquationStiffness: 1e6,   // Stable friction
+            frictionEquationRelaxation: 3     // Slower friction relaxation
+        });
+        this.world.addContactMaterial(fruitFruitContact);
+        
+        // Solver iteration settings for better stability
+        this.world.solver.iterations = 20;     // More iterations for better stability (default is 10)
+        this.world.solver.tolerance = 0.001;   // Lower tolerance for more precise solutions
+        
         // Create the container walls - marking them with isWall property
         this.createContainerWalls();
     }
@@ -226,6 +241,33 @@ class SuikaGame {
             this.wallMaterial
         );
         rightWall.isWall = true;
+        
+        // Back wall
+        const backWall = this.createWall(
+            new CANNON.Vec3(0, CONTAINER_HEIGHT / 2, -CONTAINER_DEPTH / 2),
+            new CANNON.Vec3(CONTAINER_WIDTH / 2 + 0.5, CONTAINER_HEIGHT / 2, 0.5),
+            this.wallMaterial
+        );
+        backWall.isWall = true;
+        
+        // Add a floor sensor below the container to detect escaped fruits
+        const floorSensor = new CANNON.Body({
+            type: CANNON.Body.STATIC,
+            shape: new CANNON.Box(new CANNON.Vec3(CONTAINER_WIDTH * 2, 0.1, CONTAINER_DEPTH * 2)),
+            position: new CANNON.Vec3(0, -5, 0), // Position it 5 units below the container
+            material: this.wallMaterial,
+            isTrigger: true, // Make it a trigger/sensor
+            collisionResponse: false // Don't physically collide, just detect
+        });
+        
+        // Mark it as a sensor
+        floorSensor.isSensor = true;
+        
+        // Add to world
+        this.world.addBody(floorSensor);
+        
+        // Store reference
+        this.floorSensor = floorSensor;
     }
     
     createWall(position, halfExtents, material = this.world.defaultMaterial) {
@@ -732,6 +774,16 @@ class SuikaGame {
         if (type && type.shape === 'watermelon' && type.radius > 1.5) {
             // For watermelon, use a cylinder shape for better stacking
             shape = new CANNON.Cylinder(radius, radius, radius * 1.5, 12);
+        } else if (type && type.shape === 'pineapple') {
+            // For pineapple, use a cylinder that better matches its elongated shape
+            // The pineapple visual is a cylinder with height 2*radius plus a cone on top
+            // So we'll use a cylinder with slightly taller height for better collision
+            shape = new CANNON.Cylinder(radius * 0.7, radius * 0.7, radius * 2.4, 10);
+            
+            // Use quaternion to rotate the cylinder so it's upright (y-axis aligned)
+            const quat = new CANNON.Quaternion();
+            quat.setFromAxisAngle(new CANNON.Vec3(1, 0, 0), Math.PI / 2);
+            shape.transformAllPoints(new CANNON.Vec3(), quat);
         } else {
             // For other fruits, use a sphere shape
             shape = new CANNON.Sphere(radius);
@@ -843,7 +895,8 @@ class SuikaGame {
             const fruit = {
                 mesh,
                 body,
-                type
+                type,
+                dropTime: null
             };
             
             // Add to fruits array if it's not the current fruit
@@ -940,9 +993,18 @@ class SuikaGame {
                    Date.now() - this.lastDropTime > 1000;
         });
         
-        if (fruitAboveLine && !this.gameOver) {
+        // Check for fruit that has fallen out of the container
+        const fruitBelowContainer = this.fruits.some(fruit => {
+            // Check if fruit is below our floor sensor (fallen out completely)
+            return fruit.body.position.y < -5;
+        });
+        
+        if ((fruitAboveLine || fruitBelowContainer) && !this.gameOver) {
             this.gameOver = true;
             console.log("Game over triggered");
+            if (fruitBelowContainer) {
+                console.log("Game over caused by fruit falling out of container");
+            }
             this.showGameOverScreen();
         }
     }
@@ -1026,6 +1088,116 @@ class SuikaGame {
         });
     }
     
+    preventBottomClipping() {
+        // Check all fruits
+        for (const fruit of this.fruits) {
+            // Only check fruits that are near the bottom and not moving upward significantly already
+            if (fruit.body && fruit.body.position.y < 0.5 && fruit.body.velocity.y <= 0.1) {
+                // How close to the bottom (0 = at bottom, 0.5 = at our threshold)
+                const proximity = Math.max(0, 0.5 - fruit.body.position.y);
+                
+                // Apply stronger correction the closer we are to the bottom
+                // Scale factor is stronger when closer to 0
+                const correctionFactor = 0.05 + (proximity * 0.2);
+                
+                // Apply a small upward force - stronger the closer to bottom
+                fruit.body.applyForce(
+                    new CANNON.Vec3(0, correctionFactor, 0), // Force in y direction
+                    fruit.body.position // Application point
+                );
+                
+                // If very close to bottom, also directly adjust position slightly
+                if (fruit.body.position.y < 0.05) {
+                    fruit.body.position.y = 0.05;
+                    
+                    // Reset downward velocity
+                    if (fruit.body.velocity.y < 0) {
+                        fruit.body.velocity.y = 0;
+                    }
+                }
+            }
+        }
+    }
+    
+    stabilizeStackedFruits() {
+        // Examine all fruits
+        for (const fruit of this.fruits) {
+            if (!fruit.body) continue;
+            
+            // Skip fruits that were recently dropped (still in active play)
+            if (fruit.dropTime && Date.now() - fruit.dropTime < 2000) continue;
+            
+            // Get the current linear and angular velocity
+            const linearSpeed = fruit.body.velocity.length();
+            const angularSpeed = fruit.body.angularVelocity.length();
+            
+            // Identify fruits that are part of a stable stack
+            // These are fruits that are:
+            // 1. Moving very slowly (nearly at rest)
+            // 2. Have multiple contact points (indicating they're supported)
+            // 3. Have been in play for some time
+            
+            let contactCount = 0;
+            let hasBottomSupport = false;
+            let hasSideSupport = false;
+            
+            // Count contacts and identify support type
+            if (fruit.body.world && fruit.body.world.contacts) {
+                for (let i = 0; i < fruit.body.world.contacts.length; i++) {
+                    const contact = fruit.body.world.contacts[i];
+                    
+                    // Check if this contact involves our fruit
+                    if (contact.bi === fruit.body || contact.bj === fruit.body) {
+                        contactCount++;
+                        
+                        // Get the other body in the contact
+                        const otherBody = contact.bi === fruit.body ? contact.bj : contact.bi;
+                        
+                        // Check if contact normal points roughly upward (bottom support)
+                        const normalDirection = contact.ni.y; // Normal's y component
+                        
+                        if (normalDirection > 0.7) {
+                            hasBottomSupport = true;
+                        } else if (Math.abs(normalDirection) < 0.3) {
+                            hasSideSupport = true;
+                        }
+                    }
+                }
+            }
+            
+            // If the fruit is nearly stationary, has bottom support, and is experiencing side forces
+            if (linearSpeed < 0.3 && hasBottomSupport && hasSideSupport && contactCount >= 3) {
+                // This fruit is likely in a stable stack but experiencing compression
+                
+                // Dampen forces significantly to prevent build-up
+                fruit.body.linearDamping = 0.9;
+                fruit.body.angularDamping = 0.9;
+                
+                // Limit velocities directly to prevent spikes
+                if (linearSpeed > 0.1) {
+                    fruit.body.velocity.scale(0.9, fruit.body.velocity);
+                }
+                
+                if (angularSpeed > 0.3) {
+                    fruit.body.angularVelocity.scale(0.8, fruit.body.angularVelocity);
+                }
+                
+                // For fruits in the bottom portion of the container that have been there a while
+                if (fruit.body.position.y < CONTAINER_HEIGHT/4 && Date.now() - fruit.dropTime > 5000) {
+                    // These are likely load-bearing fruits at the bottom of the stack
+                    // Apply extra force dampening to prevent them from being ejected
+                    
+                    // Check if this fruit is experiencing extreme compression (many contacts)
+                    if (contactCount > 4) {
+                        // For heavily compressed fruits - almost fully stabilize
+                        fruit.body.velocity.scale(0.5, fruit.body.velocity);
+                        fruit.body.angularVelocity.scale(0.5, fruit.body.angularVelocity);
+                    }
+                }
+            }
+        }
+    }
+
     dispose() {
         console.log("Disposing all game resources");
         
@@ -1161,6 +1333,12 @@ class SuikaGame {
                 this.currentFruit.body.collisionFilterGroup = 1;
                 this.currentFruit.body.collisionFilterMask = 1;
                 
+                // Set initial angular damping (will gradually increase over time)
+                this.currentFruit.body.angularDamping = 0.1;
+                
+                // Record the time when the fruit was dropped for rotation damping
+                this.currentFruit.dropTime = Date.now();
+                
                 // Make fruit fully opaque
                 if (this.currentFruit.mesh && typeof this.currentFruit.mesh.traverse === 'function') {
                     this.currentFruit.mesh.traverse((child) => {
@@ -1255,9 +1433,77 @@ class SuikaGame {
                 }
             }
             
+            // Gradually reduce fruit rotation after 1 second
+            for (const fruit of this.fruits) {
+                if (fruit && fruit.body && fruit.dropTime) {
+                    const timeElapsed = Date.now() - fruit.dropTime;
+                    
+                    // Basic damping increase over time (starts after 1 second)
+                    if (timeElapsed > 1000) {
+                        // Gradually increase damping over 2 seconds (from 0.1 to 0.9)
+                        // After 3 seconds from drop (1s delay + 2s transition), rotation will be heavily damped
+                        const dampingProgress = Math.min(1, (timeElapsed - 1000) / 2000);
+                        fruit.body.angularDamping = 0.1 + (dampingProgress * 0.8);
+                        
+                        // For older fruits (> 3 seconds), directly limit angular velocity
+                        if (timeElapsed > 3000) {
+                            // Get current angular velocity magnitude
+                            const angularSpeed = fruit.body.angularVelocity.length();
+                            
+                            // Maximum allowed angular velocity (radians/sec) - decreases with age
+                            // Older fruits have stricter limits on rotation
+                            const ageInSeconds = timeElapsed / 1000;
+                            const maxAngularSpeed = Math.max(1, 8 / Math.sqrt(ageInSeconds - 2));
+                            
+                            // If rotating too fast, scale it down
+                            if (angularSpeed > maxAngularSpeed) {
+                                // Create a dampening factor
+                                const dampFactor = maxAngularSpeed / angularSpeed;
+                                
+                                // Scale down angular velocity
+                                fruit.body.angularVelocity.scale(dampFactor, fruit.body.angularVelocity);
+                            }
+                        }
+                    }
+                    
+                    // Check if this fruit is being "squeezed" (has multiple active contacts)
+                    // This indicates it's compressed between other objects
+                    if (fruit.body.world && fruit.body.world.contacts) {
+                        let contactCount = 0;
+                        
+                        // Count contacts involving this body
+                        for (let i = 0; i < fruit.body.world.contacts.length; i++) {
+                            const contact = fruit.body.world.contacts[i];
+                            if (contact.bi === fruit.body || contact.bj === fruit.body) {
+                                contactCount++;
+                            }
+                            
+                            // If we have 3+ contacts, fruit is likely being squeezed
+                            if (contactCount >= 3) {
+                                // Apply stronger angular damping and velocity limiting for squeezed fruits
+                                fruit.body.angularDamping = Math.max(fruit.body.angularDamping, 0.8);
+                                
+                                // Hard limit on angular velocity when squeezed
+                                const maxSqueezeAngularSpeed = 2.0;
+                                const currentSpeed = fruit.body.angularVelocity.length();
+                                
+                                if (currentSpeed > maxSqueezeAngularSpeed) {
+                                    const scaleFactor = maxSqueezeAngularSpeed / currentSpeed;
+                                    fruit.body.angularVelocity.scale(scaleFactor, fruit.body.angularVelocity);
+                                }
+                                
+                                break; // No need to count more contacts
+                            }
+                        }
+                    }
+                }
+            }
+            
             // Check for collisions/merges
             this.checkFruitCombinations();
             this.checkGameOver();
+            this.preventBottomClipping();
+            this.stabilizeStackedFruits();
         }
 
         // Render scene
