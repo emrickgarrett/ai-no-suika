@@ -14,6 +14,7 @@ export class TextureManager {
         this.pearTexture = null;
         this.peachTexture = null;
         this.pineappleTexture = null;
+        this.pumpkinTexture = null;
         this.melonTexture = null;
         this.paperTexture = null;
         
@@ -220,6 +221,46 @@ export class TextureManager {
         this.peachTexture = new THREE.CanvasTexture(peachCanvas);
         this.peachTexture.wrapS = THREE.RepeatWrapping;
         this.peachTexture.wrapT = THREE.RepeatWrapping;
+
+        // Pumpkin texture with ridges and texture
+        const pumpkinTextureSize = 512;
+        const pumpkinCanvas = document.createElement('canvas');
+        pumpkinCanvas.width = pumpkinTextureSize;
+        pumpkinCanvas.height = pumpkinTextureSize;
+        const pumpkinCtx = pumpkinCanvas.getContext('2d');
+        
+        // Base orange color
+        pumpkinCtx.fillStyle = '#FF7518';
+        pumpkinCtx.fillRect(0, 0, pumpkinTextureSize, pumpkinTextureSize);
+        
+        // Add ridge lines
+        for (let i = 0; i < 8; i++) {
+            const posX = pumpkinTextureSize / 8 + (i * pumpkinTextureSize / 8);
+            
+            // Draw vertical ridge
+            pumpkinCtx.beginPath();
+            pumpkinCtx.moveTo(posX, 0);
+            pumpkinCtx.lineTo(posX, pumpkinTextureSize);
+            pumpkinCtx.lineWidth = 10;
+            pumpkinCtx.strokeStyle = '#E86100';
+            pumpkinCtx.stroke();
+        }
+        
+        // Add subtle texture variations
+        for (let i = 0; i < 3000; i++) {
+            const x = Math.random() * pumpkinTextureSize;
+            const y = Math.random() * pumpkinTextureSize;
+            const radius = 1 + Math.random() * 2;
+            
+            pumpkinCtx.beginPath();
+            pumpkinCtx.arc(x, y, radius, 0, Math.PI * 2);
+            pumpkinCtx.fillStyle = `rgba(255, 138, 36, ${Math.random() * 0.3})`;
+            pumpkinCtx.fill();
+        }
+        
+        this.pumpkinTexture = new THREE.CanvasTexture(pumpkinCanvas);
+        this.pumpkinTexture.wrapS = THREE.RepeatWrapping;
+        this.pumpkinTexture.wrapT = THREE.RepeatWrapping;
 
         // Pineapple texture with scale pattern
         const pineappleTextureSize = 512;

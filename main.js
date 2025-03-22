@@ -1,6 +1,7 @@
 // Import necessary libraries
 import * as THREE from 'three';
 import * as CANNON from 'cannon-es';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { 
     CONTAINER_WIDTH, 
     CONTAINER_HEIGHT, 
@@ -24,6 +25,9 @@ import { TextureManager } from './textureManager.js';
 
 // Import score manager
 import { ScoreManager } from './scoreManager.js';
+
+// Import fruit factory
+import { FruitFactory } from './fruitFactory.js';
 
 const FRUITS = [
     { 
@@ -87,13 +91,13 @@ const FRUITS = [
         shape: 'peach'
     },
     { 
-        name: 'Pineapple', 
+        name: 'Pumpkin', 
         radius: 1.4, 
-        color: 0xFFE135, 
+        color: 0xFF7518, 
         points: 8, 
-        emoji: '🍍',
-        leafColor: 0x228B22,
-        shape: 'pineapple'
+        emoji: '🎃',
+        stemColor: 0x228B22,
+        shape: 'pumpkin'
     },
     { 
         name: 'Melon', 
@@ -130,6 +134,7 @@ class SuikaGame {
         this.lastDropTime = 0;
         this.gameStarted = false;
         this.animationFrameId = null;
+        this.fruitFactory = null;
     }
     
     init() {
@@ -153,6 +158,9 @@ class SuikaGame {
         
         // Physics world setup
         this.initPhysics();
+        
+        // Initialize FruitFactory
+        this.fruitFactory = new FruitFactory(this.world, this.fruitMaterial, this.textureManager, this.scene);
         
         // Camera position
         this.camera.position.set(0, CONTAINER_HEIGHT / 2, 12);
@@ -213,6 +221,8 @@ class SuikaGame {
         
         // Create the container walls - marking them with isWall property
         this.createContainerWalls();
+        
+        // Initialize fruit factory now that we have a physics world
     }
     
     createContainerWalls() {
@@ -751,6 +761,18 @@ class SuikaGame {
                 return new THREE.Mesh(geometry, material);
             }
             
+            case 'pumpkin': {
+                const geometry = new THREE.SphereGeometry(type.radius, 32, 32);
+                const material = new THREE.MeshPhongMaterial({ 
+                    color: type.color,
+                    shininess: 40,
+                    map: this.textureManager.pumpkinTexture,
+                    bumpMap: this.textureManager.pumpkinTexture,
+                    bumpScale: 0.02
+                });
+                return new THREE.Mesh(geometry, material);
+            }
+            
             default: {
                 // Basic sphere for any other fruits
                 const geometry = new THREE.SphereGeometry(type.radius, 32, 32);
@@ -1087,7 +1109,7 @@ class SuikaGame {
             console.log("New game instance created with high score:", highScore);
         });
     }
-    
+
     preventBottomClipping() {
         // Check all fruits
         for (const fruit of this.fruits) {
@@ -1247,7 +1269,7 @@ class SuikaGame {
         // Remove game over screen if present
         const gameOverScreen = document.getElementById('game-over-screen');
         if (gameOverScreen && gameOverScreen.parentNode) {
-            gameOverScreen.parentNode.removeChild(gameOverScreen);
+            document.body.removeChild(gameOverScreen);
         }
         
         console.log("All resources disposed");
@@ -1282,7 +1304,7 @@ class SuikaGame {
                 CONTAINER_HEIGHT + 1,
                 0
             );
-            this.currentFruit = this.createFruit(this.nextFruitType, position, true);
+            this.currentFruit = this.fruitFactory.createFruit(this.nextFruitType, position, true);
             
             // Make the current fruit kinematic until dropped
             this.currentFruit.body.type = CANNON.Body.KINEMATIC;
@@ -1406,105 +1428,43 @@ class SuikaGame {
     }
 
     animate() {
-        // Store animation frame ID so we can cancel it if needed
+        if (this.gameOver) return;
+        
+        // Request next frame
         this.animationFrameId = requestAnimationFrame(() => this.animate());
         
-        // Safety check - don't proceed if renderer is null or if disposal is in progress
-        if (!this.renderer || !this.scene || !this.camera) {
-            return;
-        }
-        
-        // Skip update if game is over
-        if (this.gameOver) {
-            // Just render the scene but don't update physics
-            this.renderer.render(this.scene, this.camera);
-            return;
-        }
-        
-        // Update physics
+        // Update physics world
         if (this.world) {
             this.world.step(1/60);
             
-            // Update mesh positions from physics
+            // Enforce 2D constraint on all fruits
             for (const fruit of this.fruits) {
-                if (fruit && fruit.mesh && fruit.body) {
+                // Reset any z-position drift to exactly 0
+                if (fruit.body.position.z !== 0) {
+                    fruit.body.position.z = 0;
+                    fruit.mesh.position.z = 0;
+                }
+                
+                // Reset any z-velocity to 0
+                if (fruit.body.velocity.z !== 0) {
+                    fruit.body.velocity.z = 0;
+                }
+            }
+            
+            // Update mesh positions based on physics bodies
+            for (const fruit of this.fruits) {
+                if (fruit.body && fruit.mesh) {
                     fruit.mesh.position.copy(fruit.body.position);
                     fruit.mesh.quaternion.copy(fruit.body.quaternion);
                 }
             }
-            
-            // Gradually reduce fruit rotation after 1 second
-            for (const fruit of this.fruits) {
-                if (fruit && fruit.body && fruit.dropTime) {
-                    const timeElapsed = Date.now() - fruit.dropTime;
-                    
-                    // Basic damping increase over time (starts after 1 second)
-                    if (timeElapsed > 1000) {
-                        // Gradually increase damping over 2 seconds (from 0.1 to 0.9)
-                        // After 3 seconds from drop (1s delay + 2s transition), rotation will be heavily damped
-                        const dampingProgress = Math.min(1, (timeElapsed - 1000) / 2000);
-                        fruit.body.angularDamping = 0.1 + (dampingProgress * 0.8);
-                        
-                        // For older fruits (> 3 seconds), directly limit angular velocity
-                        if (timeElapsed > 3000) {
-                            // Get current angular velocity magnitude
-                            const angularSpeed = fruit.body.angularVelocity.length();
-                            
-                            // Maximum allowed angular velocity (radians/sec) - decreases with age
-                            // Older fruits have stricter limits on rotation
-                            const ageInSeconds = timeElapsed / 1000;
-                            const maxAngularSpeed = Math.max(1, 8 / Math.sqrt(ageInSeconds - 2));
-                            
-                            // If rotating too fast, scale it down
-                            if (angularSpeed > maxAngularSpeed) {
-                                // Create a dampening factor
-                                const dampFactor = maxAngularSpeed / angularSpeed;
-                                
-                                // Scale down angular velocity
-                                fruit.body.angularVelocity.scale(dampFactor, fruit.body.angularVelocity);
-                            }
-                        }
-                    }
-                    
-                    // Check if this fruit is being "squeezed" (has multiple active contacts)
-                    // This indicates it's compressed between other objects
-                    if (fruit.body.world && fruit.body.world.contacts) {
-                        let contactCount = 0;
-                        
-                        // Count contacts involving this body
-                        for (let i = 0; i < fruit.body.world.contacts.length; i++) {
-                            const contact = fruit.body.world.contacts[i];
-                            if (contact.bi === fruit.body || contact.bj === fruit.body) {
-                                contactCount++;
-                            }
-                            
-                            // If we have 3+ contacts, fruit is likely being squeezed
-                            if (contactCount >= 3) {
-                                // Apply stronger angular damping and velocity limiting for squeezed fruits
-                                fruit.body.angularDamping = Math.max(fruit.body.angularDamping, 0.8);
-                                
-                                // Hard limit on angular velocity when squeezed
-                                const maxSqueezeAngularSpeed = 2.0;
-                                const currentSpeed = fruit.body.angularVelocity.length();
-                                
-                                if (currentSpeed > maxSqueezeAngularSpeed) {
-                                    const scaleFactor = maxSqueezeAngularSpeed / currentSpeed;
-                                    fruit.body.angularVelocity.scale(scaleFactor, fruit.body.angularVelocity);
-                                }
-                                
-                                break; // No need to count more contacts
-                            }
-                        }
-                    }
-                }
-            }
-            
-            // Check for collisions/merges
-            this.checkFruitCombinations();
-            this.checkGameOver();
-            this.preventBottomClipping();
-            this.stabilizeStackedFruits();
         }
+
+        // Check for collisions/merges
+        this.checkFruitCombinations();
+        this.checkGameOver();
+        this.preventBottomClipping();
+        this.stabilizeStackedFruits();
 
         // Render scene
         this.renderer.render(this.scene, this.camera);
@@ -1552,7 +1512,7 @@ class SuikaGame {
         
         // Create a new fruit at the mouse X position, top of container
         const position = new THREE.Vector3(positionX, CONTAINER_HEIGHT + 1, 0);
-        this.currentFruit = this.createFruit(this.nextFruitType, position, true);
+        this.currentFruit = this.fruitFactory.createFruit(this.nextFruitType, position, true);
         
         // Make the current fruit kinematic until dropped
         this.currentFruit.body.type = CANNON.Body.KINEMATIC;
