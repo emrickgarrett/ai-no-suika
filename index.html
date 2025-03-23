@@ -28,7 +28,15 @@
     {
       "imports": {
         "three": "https://unpkg.com/three@0.162.0/build/three.module.js",
-        "three/addons/": "https://unpkg.com/three@0.162.0/examples/jsm/"
+        "three/addons/": "https://unpkg.com/three@0.162.0/examples/jsm/",
+        "three/examples/jsm/controls/OrbitControls.js": "https://unpkg.com/three@0.162.0/examples/jsm/controls/OrbitControls.js",
+        "cannon-es": "https://unpkg.com/cannon-es@0.20.0/dist/cannon-es.js",
+        "./constants.js": "./constants.js?v=20250323",
+        "./audioManager.js": "./audioManager.js?v=20250323",
+        "./fruitFactory.js": "./fruitFactory.js?v=20250323",
+        "./textureManager.js": "./textureManager.js?v=20250323",
+        "./scoreManager.js": "./scoreManager.js?v=20250323",
+        "./socialShare.js": "./socialShare.js?v=20250323"
       }
     }
     </script>
@@ -144,10 +152,7 @@
     <!-- Hidden canvas for generating social share images -->
     <canvas id="share-canvas" width="1200" height="630" style="display: none;"></canvas>
 
-    <!-- JavaScript imports with cache-busting -->
-    <script type="module" src="./constants.js?v=20250323"></script>
-    <script type="module" src="./audioManager.js?v=20250323"></script>
-    <script type="module" src="./socialShare.js?v=20250323"></script>
+    <!-- Main JavaScript import with cache-busting - this will import all other modules -->
     <script type="module" src="./main.js?v=20250323"></script>
 </body>
 </html>
