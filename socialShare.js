@@ -100,8 +100,8 @@ class SocialShare {
         // Update meta tags first for better preview
         this.updateMetaTags(score);
         
-        // Create Twitter intent URL with score and hashtag
-        const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(this.gameUrl)}&hashtags=AiNoSuikaGame`;
+        // Create Twitter intent URL with score and hashtags
+        const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(this.gameUrl)}&hashtags=AiNoSuikaGame,VibeJam`;
         
         // Open in a new window
         window.open(twitterUrl, '_blank');
