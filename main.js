@@ -1590,5 +1590,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
     
+    // Add the button to the document
     document.body.appendChild(musicStartButton);
 });
