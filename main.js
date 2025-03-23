@@ -135,6 +135,7 @@ class SuikaGame {
         this.gameStarted = false;
         this.animationFrameId = null;
         this.fruitFactory = null;
+        this.lastTimestamp = 0; // For delta time calculation
     }
     
     init() {
@@ -184,13 +185,13 @@ class SuikaGame {
         window.addEventListener('click', () => this.dropFruit());
 
         // Start game loop
-        this.animate();
+        this.animate(0);
     }
 
     initPhysics() {
         // Initialize physics world
         this.world = new CANNON.World({
-            gravity: new CANNON.Vec3(0, -9.82, 0)
+            gravity: new CANNON.Vec3(0, -25.0, 0) // Significantly increased from -15.0 to -25.0
         });
         
         // Create materials
@@ -199,15 +200,15 @@ class SuikaGame {
         
         // Create contact material
         const fruitWallContact = new CANNON.ContactMaterial(this.fruitMaterial, this.wallMaterial, {
-            friction: 0.3,
-            restitution: 0.4
+            friction: 0.35,
+            restitution: 0.25 // Reduced from 0.4 to make fruits bounce less
         });
         this.world.addContactMaterial(fruitWallContact);
         
         // Create contact material for fruit-to-fruit interactions
         const fruitFruitContact = new CANNON.ContactMaterial(this.fruitMaterial, this.fruitMaterial, {
             friction: 0.5,      // Higher friction between fruits to reduce sliding
-            restitution: 0.2,   // Lower restitution (bounciness) to reduce energy in the system
+            restitution: 0.15,   // Reduced from 0.2 to make fruits bounce less
             contactEquationStiffness: 1e6,    // Softer contacts to prevent explosive forces
             contactEquationRelaxation: 3,     // Slower relaxation for more stability
             frictionEquationStiffness: 1e6,   // Stable friction
@@ -839,7 +840,7 @@ class SuikaGame {
             game = new SuikaGame();
             game.init();
             game.scoreManager.setHighScore(highScore);
-            game.animate();
+            game.animate(0);
             
             // Restore background music if it was playing
             if (wasMusicPlaying) {
@@ -1167,15 +1168,25 @@ class SuikaGame {
         this.renderer.setSize(window.innerWidth, window.innerHeight);
     }
 
-    animate() {
+    animate(timestamp) {
         if (this.gameOver) return;
         
         // Request next frame
-        this.animationFrameId = requestAnimationFrame(() => this.animate());
+        this.animationFrameId = requestAnimationFrame((newTimestamp) => this.animate(newTimestamp));
         
-        // Update physics world
+        // Calculate delta time with a maximum value to prevent large jumps
+        if (!this.lastTimestamp) {
+            this.lastTimestamp = timestamp || 0;
+        }
+        const deltaTime = timestamp ? Math.min((timestamp - this.lastTimestamp) / 1000, 0.1) : 1/60;
+        this.lastTimestamp = timestamp || 0;
+        
+        // Update physics world with proper time stepping
         if (this.world) {
-            this.world.step(1/60);
+            // Use fixed time steps for stability with interpolation for smooth rendering
+            const fixedTimeStep = 1/60;
+            const maxSubSteps = 3; // Allow up to 3 substeps to catch up if needed
+            this.world.step(fixedTimeStep, deltaTime, maxSubSteps);
             
             // Enforce 2D constraint on all fruits
             for (const fruit of this.fruits) {
@@ -1298,7 +1309,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!game) {
             game = new SuikaGame();
             game.init();
-            game.animate();
+            game.animate(0);
         }
     });
     
