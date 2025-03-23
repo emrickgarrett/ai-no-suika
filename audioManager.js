@@ -15,6 +15,8 @@ export class AudioManager {
         this.musicPlaying = false;
         this.soundEffectsVolume = DEFAULT_SOUND_EFFECTS_VOLUME;
         this.musicVolume = DEFAULT_MUSIC_VOLUME;
+        this.lastScheduledTime = 0;
+        this.loopCheckInterval = null;
     }
 
     /**
@@ -268,41 +270,10 @@ export class AudioManager {
     }
 
     /**
-     * Create UI controls for music
+     * Create UI controls for music - disabled
      */
     createMusicControls() {
-        // Create container for music controls
-        const musicControls = document.createElement('div');
-        musicControls.style.position = 'absolute';
-        musicControls.style.bottom = '50px';  // Moved up from 10px to 50px
-        musicControls.style.right = '10px';
-        musicControls.style.zIndex = '1000';
-        
-        // Create music toggle button
-        const musicButton = document.createElement('button');
-        musicButton.textContent = '🎵 Play Music';
-        musicButton.style.padding = '8px 12px';
-        musicButton.style.backgroundColor = '#2c3e50';
-        musicButton.style.color = 'white';
-        musicButton.style.border = 'none';
-        musicButton.style.borderRadius = '4px';
-        musicButton.style.cursor = 'pointer';
-        musicButton.style.fontFamily = 'Arial, sans-serif';
-        
-        // Add click event
-        musicButton.addEventListener('click', () => {
-            if (this.musicPlaying) {
-                this.stopBackgroundMusic();
-                musicButton.textContent = '🎵 Play Music';
-            } else {
-                this.playBackgroundMusic();
-                musicButton.textContent = '🔇 Stop Music';
-            }
-        });
-        
-        // Add button to the controls
-        musicControls.appendChild(musicButton);
-        document.body.appendChild(musicControls);
+        // Music controls removed
     }
     
     /**
@@ -435,13 +406,19 @@ export class AudioManager {
         
         this.musicPlaying = true;
         
-        // Update button text if it exists
-        const musicButtons = document.querySelectorAll('button');
-        musicButtons.forEach(button => {
-            if (button.textContent.includes('Play Music')) {
-                button.textContent = '🔇 Stop Music';
+        // Set up a check to ensure music keeps playing
+        this.loopCheckInterval = setInterval(() => {
+            if (this.musicPlaying && this.audioContext && this.audioContext.state === 'running') {
+                // If we're close to the end of our scheduled music, schedule more
+                const currentTime = this.audioContext.currentTime;
+                if (currentTime > this.lastScheduledTime - 60) { // If less than 60 seconds of music left
+                    // Schedule more music
+                    this.createSynthwaveBass(mainGain, currentTime + 1);
+                    this.createSynthwaveMelody(mainGain, currentTime + 1);
+                    this.createSynthwaveDrums(mainGain, currentTime + 1);
+                }
             }
-        });
+        }, 30000); // Check every 30 seconds
     }
     
     /**
@@ -449,6 +426,12 @@ export class AudioManager {
      */
     stopBackgroundMusic() {
         if (!this.musicPlaying) return;
+        
+        // Clear the loop check interval
+        if (this.loopCheckInterval) {
+            clearInterval(this.loopCheckInterval);
+            this.loopCheckInterval = null;
+        }
         
         // Fade out over 1 second
         if (this.musicNodes && this.musicNodes.mainGainNode) {
@@ -481,25 +464,24 @@ export class AudioManager {
     }
     
     /**
-     * Create synthesized bass line (typical for synthwave)
+     * Create synthesized bass line (simple, gentle)
      */
-    createSynthwaveBass(outputNode) {
-        const now = this.audioContext.currentTime;
+    createSynthwaveBass(outputNode, startOffset = 0) {
+        const now = this.audioContext.currentTime + startOffset;
         
-        // Bass notes and timing (A minor pentatonic)
-        const bassNotes = [220, 220, 175, 165, 147, 175]; // A, A, F, E, D, F
-        const noteDuration = 0.5; // Half second per note
+        // Simple C major bass notes - fewer notes for simplicity
+        const bassNotes = [262, 196, 220, 196]; // C3, G2, A2, G2
+        const noteDuration = 1.0; // 1 second per note, slower and more relaxed
         const patternDuration = bassNotes.length * noteDuration;
         
         // Create oscillator for bass
         const bassOscillator = this.audioContext.createOscillator();
-        bassOscillator.type = 'sawtooth';
+        bassOscillator.type = 'sine'; // Soft sine wave
         
-        // Filter for that classic synth bass sound
+        // Simple lowpass filter
         const bassFilter = this.audioContext.createBiquadFilter();
         bassFilter.type = 'lowpass';
         bassFilter.frequency.value = 500;
-        bassFilter.Q.value = 5;
         
         // Create envelope
         const bassEnvelope = this.audioContext.createGain();
@@ -509,18 +491,20 @@ export class AudioManager {
         bassFilter.connect(bassEnvelope);
         bassEnvelope.connect(outputNode);
         
-        // Schedule the bass line notes
-        for (let i = 0; i < 100; i++) { // Schedule enough notes for several minutes
+        // Schedule the bass line notes - simple pattern
+        const iterations = 1000;
+        for (let i = 0; i < iterations; i++) {
             for (let j = 0; j < bassNotes.length; j++) {
                 const startTime = now + (i * patternDuration) + (j * noteDuration);
                 bassOscillator.frequency.setValueAtTime(bassNotes[j], startTime);
                 
-                // Envelope shaping
+                // Very gentle envelope
                 bassEnvelope.gain.setValueAtTime(0, startTime);
-                bassEnvelope.gain.linearRampToValueAtTime(0.7, startTime + 0.05);
-                bassEnvelope.gain.linearRampToValueAtTime(0.5, startTime + 0.1);
-                bassEnvelope.gain.linearRampToValueAtTime(0.3, startTime + noteDuration * 0.7);
-                bassEnvelope.gain.linearRampToValueAtTime(0, startTime + noteDuration * 0.9);
+                bassEnvelope.gain.linearRampToValueAtTime(0.3, startTime + 0.1);
+                bassEnvelope.gain.linearRampToValueAtTime(0.2, startTime + noteDuration * 0.9);
+                
+                // Track the last scheduled time to know when to loop
+                this.lastScheduledTime = Math.max(this.lastScheduledTime || 0, startTime + noteDuration);
             }
         }
         
@@ -530,17 +514,19 @@ export class AudioManager {
     }
     
     /**
-     * Create synthwave melody
+     * Create simple spring melody
      */
-    createSynthwaveMelody(outputNode) {
-        const now = this.audioContext.currentTime;
+    createSynthwaveMelody(outputNode, startOffset = 0) {
+        const now = this.audioContext.currentTime + startOffset;
         
-        // Melody notes (A minor pentatonic, higher octave)
-        const melodyNotes = [440, 523, 587, 660, 880];
-        const rhythmPattern = [2, 1, 0.5, 0.5, 1, 1]; // Note durations in beats
+        // Simple C major melody notes
+        const melodyNotes = [523, 587, 659, 698, 784]; // C5, D5, E5, F5, G5
         
-        // Create main melody synth
-        this.scheduleMelodyPattern(melodyNotes, rhythmPattern, 120, outputNode, now);
+        // Simple rhythm pattern - gentle and sparse
+        const rhythmPattern = [1, 1, 2, 1.5, 1.5];
+        
+        // Create main melody synth - slower tempo (100 instead of 140)
+        this.scheduleMelodyPattern(melodyNotes, rhythmPattern, 100, outputNode, now);
     }
     
     /**
@@ -550,19 +536,31 @@ export class AudioManager {
         const beatDuration = 60 / tempo;
         let currentTime = startTime;
         
-        // Create repeating melody pattern
-        for (let repeat = 0; repeat < 20; repeat++) {
-            // Run through the rhythm pattern
-            for (let i = 0; i < rhythm.length; i++) {
-                // Only play some notes for variety
-                if (Math.random() > 0.3) {
-                    // Pick a random note from the scale
-                    const note = notes[Math.floor(Math.random() * notes.length)];
-                    this.playMelodyNote(note, currentTime, rhythm[i] * beatDuration, outputNode);
+        // Simple repeating melody pattern
+        const iterations = 200;
+        for (let repeat = 0; repeat < iterations; repeat++) {
+            // For even more simplicity, add pauses between repeats
+            if (repeat > 0) {
+                currentTime += beatDuration * 2; // Add pause between patterns
+            }
+            
+            // Simple melody sequence that doesn't always play the same way
+            const sequence = [0, 1, 2, 1, 4, 2, 3, 2]; // Indexes into notes array
+            
+            // Play through the sequence
+            for (let i = 0; i < sequence.length; i++) {
+                // Only play 80% of notes for some variation but still clear melody
+                if (Math.random() > 0.2) {
+                    const note = notes[sequence[i]];
+                    const duration = rhythm[i % rhythm.length] * beatDuration;
+                    this.playMelodyNote(note, currentTime, duration, outputNode);
                 }
                 
                 // Move time forward
-                currentTime += rhythm[i] * beatDuration;
+                currentTime += rhythm[i % rhythm.length] * beatDuration;
+                
+                // Track the last scheduled time
+                this.lastScheduledTime = Math.max(this.lastScheduledTime || 0, currentTime);
             }
         }
     }
@@ -573,182 +571,140 @@ export class AudioManager {
     playMelodyNote(frequency, startTime, duration, outputNode) {
         // Create oscillator for the note
         const oscillator = this.audioContext.createOscillator();
-        oscillator.type = 'square';
+        oscillator.type = 'sine'; // Pure sine for cleaner sound
         oscillator.frequency.value = frequency;
         
-        // Create filter for tone shaping
+        // Very minimal filtering
         const filter = this.audioContext.createBiquadFilter();
         filter.type = 'lowpass';
-        filter.frequency.value = 2000;
-        filter.Q.value = 2;
+        filter.frequency.value = 1500;
         
         // Create envelope
         const envelope = this.audioContext.createGain();
-        envelope.gain.setValueAtTime(0, startTime);
-        envelope.gain.linearRampToValueAtTime(0.3, startTime + 0.05);
-        envelope.gain.linearRampToValueAtTime(0.2, startTime + duration * 0.5);
-        envelope.gain.linearRampToValueAtTime(0, startTime + duration);
+        envelope.gain.value = 0;
         
         // Connect components
         oscillator.connect(filter);
         filter.connect(envelope);
         envelope.connect(outputNode);
         
-        // Schedule playback
-        oscillator.start(startTime);
-        oscillator.stop(startTime + duration + 0.1);
+        // Simple gentle envelope
+        envelope.gain.setValueAtTime(0, startTime);
+        envelope.gain.linearRampToValueAtTime(0.2, startTime + 0.1);
+        envelope.gain.linearRampToValueAtTime(0.15, startTime + duration * 0.6);
+        envelope.gain.linearRampToValueAtTime(0, startTime + duration);
         
-        // Store for later cleanup
+        // Schedule and start the oscillator
+        oscillator.start(startTime);
+        oscillator.stop(startTime + duration);
+        
+        // Store for cleanup
         this.musicNodes.melodySynths.push(oscillator);
     }
     
     /**
-     * Create drum sounds for rhythm
+     * Create minimal drum sounds
      */
-    createSynthwaveDrums(outputNode) {
-        const tempo = 120; // beats per minute
+    createSynthwaveDrums(outputNode, startOffset = 0) {
+        const tempo = 100; // Slower tempo
         const beatDuration = 60 / tempo;
-        const now = this.audioContext.currentTime;
+        const now = this.audioContext.currentTime + startOffset;
         
-        // Schedule drum pattern for several minutes
+        // Schedule minimal drum pattern
         for (let bar = 0; bar < 100; bar++) {
-            const barStartTime = now + bar * beatDuration * 4;
+            const barStartTime = now + (bar * beatDuration * 4);
             
-            // Kick drum on beats 1 and 3
+            // Very minimal kick - just on beat 1
             this.playKickDrum(barStartTime, outputNode);
-            this.playKickDrum(barStartTime + beatDuration * 2, outputNode);
             
-            // Snare on beats 2 and 4
-            this.playSnare(barStartTime + beatDuration, outputNode);
-            this.playSnare(barStartTime + beatDuration * 3, outputNode);
-            
-            // Hi-hat on every 8th note
-            for (let i = 0; i < 8; i++) {
-                this.playHiHat(barStartTime + beatDuration * i / 2, outputNode);
+            // Occasional very light hi-hat
+            if (bar % 2 === 0) { // Only every other bar
+                this.playHiHat(barStartTime + beatDuration * 2, outputNode, 0.1);
             }
+            
+            // Track scheduled time
+            this.lastScheduledTime = Math.max(this.lastScheduledTime || 0, barStartTime + (beatDuration * 4));
         }
     }
     
     /**
-     * Create a kick drum sound
+     * Create a very gentle kick drum sound
      */
     playKickDrum(time, outputNode) {
-        // Create oscillator for the kick
-        const kickOsc = this.audioContext.createOscillator();
-        kickOsc.frequency.value = 150;
+        if (!this.audioContext) return;
         
-        // Create gain node for shaping
-        const kickGain = this.audioContext.createGain();
-        kickGain.gain.value = 0;
+        // Oscillator for the kick
+        const osc = this.audioContext.createOscillator();
+        osc.type = 'sine';
+        
+        // Gain node for envelope
+        const gainNode = this.audioContext.createGain();
+        gainNode.gain.value = 0;
         
         // Connect
-        kickOsc.connect(kickGain);
-        kickGain.connect(outputNode);
+        osc.connect(gainNode);
+        gainNode.connect(outputNode);
         
-        // Schedule frequency and amplitude envelopes
-        kickOsc.frequency.setValueAtTime(150, time);
-        kickOsc.frequency.exponentialRampToValueAtTime(40, time + 0.1);
+        // Gentle frequency sweep
+        osc.frequency.setValueAtTime(80, time);
+        osc.frequency.exponentialRampToValueAtTime(40, time + 0.1);
         
-        kickGain.gain.setValueAtTime(0, time);
-        kickGain.gain.linearRampToValueAtTime(0.7, time + 0.01);
-        kickGain.gain.linearRampToValueAtTime(0, time + 0.3);
+        // Very gentle envelope
+        gainNode.gain.setValueAtTime(0, time);
+        gainNode.gain.linearRampToValueAtTime(0.2, time + 0.02);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, time + 0.3);
         
-        // Start and stop
-        kickOsc.start(time);
-        kickOsc.stop(time + 0.3);
+        // Schedule
+        osc.start(time);
+        osc.stop(time + 0.3);
         
         // Store for cleanup
-        this.musicNodes.drumSounds.push(kickGain);
+        this.musicNodes.drumSounds.push(osc);
     }
     
     /**
-     * Create a snare drum sound
+     * Create a very light hi-hat sound
      */
-    playSnare(time, outputNode) {
-        // Create noise for the snare body
-        const bufferSize = this.audioContext.sampleRate * 0.2; // 200ms buffer
-        const buffer = this.audioContext.createBuffer(1, bufferSize, this.audioContext.sampleRate);
-        const data = buffer.getChannelData(0);
+    playHiHat(time, outputNode, velocity = 0.1) {
+        if (!this.audioContext) return;
         
-        // Fill buffer with white noise
-        for (let i = 0; i < bufferSize; i++) {
-            data[i] = Math.random() * 2 - 1;
-        }
+        // Simple high-frequency oscillator
+        const osc = this.audioContext.createOscillator();
+        osc.type = 'sine';
+        osc.frequency.value = 8000;
         
-        // Create noise source
-        const snareNoise = this.audioContext.createBufferSource();
-        snareNoise.buffer = buffer;
+        // Simple highpass filter
+        const filter = this.audioContext.createBiquadFilter();
+        filter.type = 'highpass';
+        filter.frequency.value = 7000;
         
-        // Create filter to shape the noise
-        const snareFilter = this.audioContext.createBiquadFilter();
-        snareFilter.type = 'highpass';
-        snareFilter.frequency.value = 1000;
-        
-        // Create gain node for shaping
-        const snareGain = this.audioContext.createGain();
-        snareGain.gain.value = 0;
+        // Gain node for envelope
+        const gainNode = this.audioContext.createGain();
+        gainNode.gain.value = 0;
         
         // Connect
-        snareNoise.connect(snareFilter);
-        snareFilter.connect(snareGain);
-        snareGain.connect(outputNode);
+        osc.connect(filter);
+        filter.connect(gainNode);
+        gainNode.connect(outputNode);
         
-        // Schedule amplitude envelope
-        snareGain.gain.setValueAtTime(0, time);
-        snareGain.gain.linearRampToValueAtTime(0.4, time + 0.01);
-        snareGain.gain.linearRampToValueAtTime(0, time + 0.2);
+        // Very gentle envelope
+        gainNode.gain.setValueAtTime(0, time);
+        gainNode.gain.linearRampToValueAtTime(velocity, time + 0.001);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, time + 0.05);
         
-        // Start and stop
-        snareNoise.start(time);
-        snareNoise.stop(time + 0.2);
+        // Schedule
+        osc.start(time);
+        osc.stop(time + 0.05);
         
         // Store for cleanup
-        this.musicNodes.drumSounds.push(snareGain);
+        this.musicNodes.drumSounds.push(osc);
     }
     
     /**
-     * Create a hi-hat sound
+     * This method is eliminated since we're simplifying
      */
-    playHiHat(time, outputNode) {
-        // Create noise for the hi-hat
-        const bufferSize = this.audioContext.sampleRate * 0.1; // 100ms buffer
-        const buffer = this.audioContext.createBuffer(1, bufferSize, this.audioContext.sampleRate);
-        const data = buffer.getChannelData(0);
-        
-        // Fill buffer with white noise
-        for (let i = 0; i < bufferSize; i++) {
-            data[i] = Math.random() * 2 - 1;
-        }
-        
-        // Create noise source
-        const hatNoise = this.audioContext.createBufferSource();
-        hatNoise.buffer = buffer;
-        
-        // Create filter to shape the noise
-        const hatFilter = this.audioContext.createBiquadFilter();
-        hatFilter.type = 'highpass';
-        hatFilter.frequency.value = 7000;
-        
-        // Create gain node for shaping
-        const hatGain = this.audioContext.createGain();
-        hatGain.gain.value = 0;
-        
-        // Connect
-        hatNoise.connect(hatFilter);
-        hatFilter.connect(hatGain);
-        hatGain.connect(outputNode);
-        
-        // Schedule amplitude envelope - very short for hi-hat
-        hatGain.gain.setValueAtTime(0, time);
-        hatGain.gain.linearRampToValueAtTime(0.2, time + 0.001);
-        hatGain.gain.linearRampToValueAtTime(0, time + 0.05);
-        
-        // Start and stop
-        hatNoise.start(time);
-        hatNoise.stop(time + 0.05);
-        
-        // Store for cleanup
-        this.musicNodes.drumSounds.push(hatGain);
+    playSnare(time, outputNode, velocity = 0.1) {
+        // Not used in the simplified version
     }
 }
 

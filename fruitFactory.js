@@ -229,7 +229,6 @@ export class FruitFactory {
                 leafShape.quadraticCurveTo(leafWidth/3, leafLength/2, leafWidth, 0);
                 leafShape.quadraticCurveTo(leafWidth/3, -leafLength/4, 0, 0);
                 
-                // Create leaf geometry and mesh
                 const leafGeometry = new THREE.ShapeGeometry(leafShape);
                 const leaf = new THREE.Mesh(
                     leafGeometry,
@@ -305,15 +304,122 @@ export class FruitFactory {
             }
             
             case 'peach': {
-                const geometry = new THREE.SphereGeometry(type.radius, 32, 32);
-                const material = new THREE.MeshPhongMaterial({ 
-                    color: type.color,
-                    shininess: 40,
+                const group = new THREE.Group();
+                
+                // Create a simple peach shape
+                const peachGeometry = new THREE.SphereGeometry(type.radius, 32, 32);
+                
+                // Modify vertices to create a subtle cleft
+                const positions = peachGeometry.attributes.position.array;
+                for (let i = 0; i < positions.length; i += 3) {
+                    const x = positions[i];
+                    const y = positions[i + 1]; 
+                    const z = positions[i + 2];
+                    
+                    // Make peach slightly wider than tall
+                    positions[i] *= 1.05;     // x - wider
+                    positions[i + 2] *= 1.05; // z - wider
+                    
+                    // Create a very subtle cleft - move to front (positive z)
+                    if (z > 0 && Math.abs(x) < type.radius * 0.2) {
+                        // Only apply to the front half near center
+                        const cleftDepth = 0.1;
+                        const cleftFactor = Math.exp(-Math.pow(x/(type.radius*0.15), 2));
+                        const yFactor = 1.0 - Math.pow(y/(type.radius*1.1), 2);
+                        const depthEffect = cleftDepth * cleftFactor * Math.max(0, yFactor);
+                        
+                        // Push in the z direction slightly to create cleft
+                        positions[i + 2] *= (1.0 - depthEffect);
+                    }
+                }
+                
+                // Update geometry
+                peachGeometry.attributes.position.needsUpdate = true;
+                peachGeometry.computeVertexNormals();
+                
+                // Create peach material using the same approach as the orange
+                const peachMaterial = new THREE.MeshStandardMaterial({
                     map: this.textureManager.peachTexture,
-                    bumpMap: this.textureManager.peachTexture,
-                    bumpScale: 0.005
+                    roughness: 0.8,
+                    metalness: 0.0
                 });
-                return new THREE.Mesh(geometry, material);
+                
+                const body = new THREE.Mesh(peachGeometry, peachMaterial);
+                
+                // Rotate the peach body so the cleft faces forward (positive z-axis)
+                // and the stem is at the top (positive y-axis)
+                body.rotation.x = Math.PI * 0.5; // Rotate 90 degrees so stem points up
+                
+                group.add(body);
+                
+                // Add a simple stem
+                const stemGeometry = new THREE.CylinderGeometry(
+                    type.radius * 0.02,  // top
+                    type.radius * 0.04,  // bottom
+                    type.radius * 0.15,  // height
+                    8
+                );
+                
+                // Add a slight curve to the stem
+                const stemPositions = stemGeometry.attributes.position.array;
+                for (let i = 0; i < stemPositions.length; i += 3) {
+                    const y = stemPositions[i + 1];
+                    if (y > 0) {
+                        stemPositions[i] += type.radius * 0.03 * (y / (type.radius * 0.15));
+                    }
+                }
+                stemGeometry.attributes.position.needsUpdate = true;
+                stemGeometry.computeVertexNormals();
+                
+                const stem = new THREE.Mesh(
+                    stemGeometry,
+                    new THREE.MeshStandardMaterial({ 
+                        color: 0x5A3300,  // Brown
+                        roughness: 0.9,
+                        metalness: 0.0
+                    })
+                );
+                
+                // Position stem at the top (positive y-axis)
+                stem.position.set(0, type.radius * 0.85, 0);
+                stem.rotation.x = Math.PI / 12;
+                
+                // Apply the same rotation to the stem as the body
+                stem.rotation.x += Math.PI * 0.5;
+                
+                group.add(stem);
+                
+                // Add a simple leaf
+                const leafShape = new THREE.Shape();
+                const leafWidth = type.radius * 0.2;
+                const leafLength = type.radius * 0.25;
+                
+                // Create leaf shape
+                leafShape.moveTo(0, 0);
+                leafShape.quadraticCurveTo(leafWidth/3, leafLength/2, leafWidth, 0);
+                leafShape.quadraticCurveTo(leafWidth/3, -leafLength/4, 0, 0);
+                
+                const leafGeometry = new THREE.ShapeGeometry(leafShape);
+                const leaf = new THREE.Mesh(
+                    leafGeometry,
+                    new THREE.MeshStandardMaterial({ 
+                        color: 0x4D8A2A,  // Green
+                        roughness: 0.8,
+                        metalness: 0.0,
+                        side: THREE.DoubleSide
+                    })
+                );
+                
+                // Position the leaf near the stem
+                leaf.position.set(type.radius * 0.05, type.radius * 0.85, type.radius * 0.05);
+                leaf.rotation.set(Math.PI / 3, 0, Math.PI / 6);
+                
+                // Apply the same rotation to the leaf as the body
+                leaf.rotation.x += Math.PI * 0.5;
+                
+                group.add(leaf);
+                
+                return group;
             }
             
             case 'pumpkin': {

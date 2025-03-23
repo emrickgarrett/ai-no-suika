@@ -264,6 +264,84 @@ export class TextureManager {
         this.grapeTexture.wrapS = THREE.RepeatWrapping;
         this.grapeTexture.wrapT = THREE.RepeatWrapping;
 
+        // SUPER VIBRANT peach texture with extremely strong coloring
+        const peachTextureSize = 512;
+        const peachCanvas = document.createElement('canvas');
+        peachCanvas.width = peachTextureSize;
+        peachCanvas.height = peachTextureSize;
+        const peachCtx = peachCanvas.getContext('2d');
+        
+        // Start with a solid, extremely vibrant base
+        peachCtx.fillStyle = '#FF7722'; // Very strong orange base
+        peachCtx.fillRect(0, 0, peachTextureSize, peachTextureSize);
+        
+        // Add a bright center
+        const peachGradient = peachCtx.createRadialGradient(
+            peachTextureSize/2, peachTextureSize/2, 0,
+            peachTextureSize/2, peachTextureSize/2, peachTextureSize/1.5
+        );
+        peachGradient.addColorStop(0, '#FFAA33');  // Very bright center
+        peachGradient.addColorStop(0.5, '#FF8822'); // Strong mid orange
+        peachGradient.addColorStop(1, 'rgba(255, 80, 10, 0)'); // Fade to base color
+        
+        // Fill with gradient overlay
+        peachCtx.fillStyle = peachGradient;
+        peachCtx.fillRect(0, 0, peachTextureSize, peachTextureSize);
+        
+        // Add darker edges for depth
+        const edgeGradient = peachCtx.createRadialGradient(
+            peachTextureSize/2, peachTextureSize/2, peachTextureSize/2 * 0.8,
+            peachTextureSize/2, peachTextureSize/2, peachTextureSize/2
+        );
+        edgeGradient.addColorStop(0, 'rgba(200, 50, 0, 0)');  // Transparent at inner part
+        edgeGradient.addColorStop(1, 'rgba(200, 50, 0, 0.3)');  // Darker at edges
+        
+        peachCtx.fillStyle = edgeGradient;
+        peachCtx.fillRect(0, 0, peachTextureSize, peachTextureSize);
+        
+        // Add minimal noise for texture
+        const peachImageData = peachCtx.getImageData(0, 0, peachTextureSize, peachTextureSize);
+        const peachData = peachImageData.data;
+        
+        for (let i = 0; i < peachData.length; i += 4) {
+            const noise = Math.random() * 8 - 4; // Minimal noise to keep colors strong
+            peachData[i] = Math.max(0, Math.min(255, peachData[i] + noise));     // R
+            peachData[i + 1] = Math.max(0, Math.min(255, peachData[i + 1] + noise * 0.7)); // G
+            peachData[i + 2] = Math.max(0, Math.min(255, peachData[i + 2] + noise * 0.5)); // B
+        }
+        
+        peachCtx.putImageData(peachImageData, 0, 0);
+        
+        // Add strong red blush to one side
+        const blushGradient = peachCtx.createRadialGradient(
+            peachTextureSize * 0.7, peachTextureSize * 0.5, 0,
+            peachTextureSize * 0.7, peachTextureSize * 0.5, peachTextureSize * 0.6
+        );
+        blushGradient.addColorStop(0, 'rgba(255, 30, 20, 0.85)'); // Very strong red
+        blushGradient.addColorStop(0.7, 'rgba(255, 30, 20, 0.3)');
+        blushGradient.addColorStop(1, 'rgba(255, 30, 20, 0)');
+        
+        peachCtx.fillStyle = blushGradient;
+        peachCtx.fillRect(0, 0, peachTextureSize, peachTextureSize);
+        
+        // Add a more visible cleft line
+        const cleftGradient = peachCtx.createLinearGradient(
+            peachTextureSize * 0.5, 0, 
+            peachTextureSize * 0.5, peachTextureSize
+        );
+        cleftGradient.addColorStop(0, 'rgba(180, 20, 0, 0.0)');
+        cleftGradient.addColorStop(0.3, 'rgba(180, 20, 0, 0.4)');
+        cleftGradient.addColorStop(0.5, 'rgba(180, 20, 0, 0.6)');
+        cleftGradient.addColorStop(0.7, 'rgba(180, 20, 0, 0.4)');
+        cleftGradient.addColorStop(1, 'rgba(180, 20, 0, 0.0)');
+        
+        peachCtx.fillStyle = cleftGradient;
+        peachCtx.fillRect(peachTextureSize * 0.48, 0, peachTextureSize * 0.04, peachTextureSize);
+        
+        this.peachTexture = new THREE.CanvasTexture(peachCanvas);
+        this.peachTexture.wrapS = THREE.RepeatWrapping;
+        this.peachTexture.wrapT = THREE.RepeatWrapping;
+
         // Apple texture with subtle pattern
         const appleTextureSize = 512;
         const appleCanvas = document.createElement('canvas');
@@ -315,32 +393,6 @@ export class TextureManager {
         this.pearTexture = new THREE.CanvasTexture(pearCanvas);
         this.pearTexture.wrapS = THREE.RepeatWrapping;
         this.pearTexture.wrapT = THREE.RepeatWrapping;
-
-        // Peach texture with fuzzy effect
-        const peachTextureSize = 512;
-        const peachCanvas = document.createElement('canvas');
-        peachCanvas.width = peachTextureSize;
-        peachCanvas.height = peachTextureSize;
-        const peachCtx = peachCanvas.getContext('2d');
-        
-        // Base peach color
-        peachCtx.fillStyle = '#FFCBA4';
-        peachCtx.fillRect(0, 0, peachTextureSize, peachTextureSize);
-        
-        // Add fuzzy texture
-        for (let i = 0; i < 10000; i++) {
-            const x = Math.random() * peachTextureSize;
-            const y = Math.random() * peachTextureSize;
-            
-            peachCtx.beginPath();
-            peachCtx.arc(x, y, 0.5, 0, Math.PI * 2);
-            peachCtx.fillStyle = `rgba(255, 218, 185, ${Math.random() * 0.1})`;
-            peachCtx.fill();
-        }
-        
-        this.peachTexture = new THREE.CanvasTexture(peachCanvas);
-        this.peachTexture.wrapS = THREE.RepeatWrapping;
-        this.peachTexture.wrapT = THREE.RepeatWrapping;
 
         // Pumpkin texture with ridges and texture
         const pumpkinTextureSize = 512;
