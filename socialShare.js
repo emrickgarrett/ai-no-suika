@@ -15,20 +15,23 @@ class SocialShare {
      * @returns {HTMLDivElement} Container with social buttons
      */
     createSocialButtons(score) {
+        console.log("Creating social buttons for score:", score);
         const shareContainer = document.createElement('div');
         shareContainer.className = 'social-share-container';
         shareContainer.style.display = 'flex';
+        shareContainer.style.flexDirection = 'row'; // Ensure horizontal layout
         shareContainer.style.justifyContent = 'center';
         shareContainer.style.gap = '10px';
         shareContainer.style.marginTop = '15px';
-
+        shareContainer.style.width = '100%'; // Ensure full width
+        
         // Create share text with the score
         const shareText = this.defaultMessage.replace('{score}', score);
         
-        // Create Twitter share button
+        // Create X (formerly Twitter) share button
         const twitterButton = this.createShareButton(
-            '🐦 Twitter',
-            '#1DA1F2',
+            '✖️ X',
+            '#000000',
             () => this.shareOnTwitter(shareText, score)
         );
         
@@ -45,20 +48,21 @@ class SocialShare {
             '#25D366',
             () => this.shareOnWhatsApp(shareText)
         );
-
+        
         // Create Copy Text button for other platforms
         const copyTextButton = this.createShareButton(
-            '📋 Copy',
+            '📋 Share',
             '#7289DA', // Discord-inspired color
             () => this.copyShareText(shareText, score)
         );
-        
+
         // Add buttons to container
         shareContainer.appendChild(twitterButton);
         shareContainer.appendChild(facebookButton);
         shareContainer.appendChild(whatsAppButton);
         shareContainer.appendChild(copyTextButton);
         
+        console.log("Social buttons created, count:", shareContainer.childNodes.length);
         return shareContainer;
     }
 
@@ -73,34 +77,21 @@ class SocialShare {
         const button = document.createElement('button');
         button.innerText = text;
         button.style.padding = '8px 15px';
+        button.style.margin = '5px';
         button.style.borderRadius = '5px';
         button.style.border = 'none';
         button.style.backgroundColor = color;
         button.style.color = 'white';
         button.style.cursor = 'pointer';
         button.style.fontWeight = 'bold';
-        button.style.fontSize = '14px';
-        button.style.transition = 'transform 0.1s, opacity 0.2s';
-        
-        // Add hover effects
-        button.addEventListener('mouseover', () => {
-            button.style.opacity = '0.9';
-            button.style.transform = 'scale(1.05)';
-        });
-        
-        button.addEventListener('mouseout', () => {
-            button.style.opacity = '1';
-            button.style.transform = 'scale(1)';
-        });
-        
-        // Add click handler
+        button.style.display = 'inline-block'; // Ensure button is displayed
+        button.style.minWidth = '100px'; // Ensure minimum width
         button.addEventListener('click', clickHandler);
-        
         return button;
     }
 
     /**
-     * Share score on Twitter
+     * Share score on X (formerly Twitter)
      * @param {string} text - Text to share
      * @param {number} score - Player's score
      */
@@ -108,11 +99,11 @@ class SocialShare {
         // Update meta tags first for better preview
         this.updateMetaTags(score);
         
-        // Add a cache-busting parameter to the preview image URL for Twitter
+        // Add a cache-busting parameter to the preview image URL for X
         const cachedImageUrl = `${this.previewImageUrl}?v=${Date.now()}`;
         this.updateMetaTag('twitter:image', cachedImageUrl);
         
-        // Create Twitter intent URL with score and hashtags
+        // Create X intent URL with score and hashtags
         const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(this.gameUrl)}&hashtags=AiNoSuikaGame,VibeJam`;
         
         // Open in a new window

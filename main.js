@@ -821,31 +821,45 @@ class SuikaGame {
         const gameOverDiv = document.getElementById('game-over');
         gameOverDiv.innerHTML = ''; // Clear any existing content
         gameOverDiv.style.display = 'flex';
+        gameOverDiv.style.flexDirection = 'column';
+        gameOverDiv.style.alignItems = 'center';
+        gameOverDiv.style.justifyContent = 'center';
         gameOverDiv.style.color = 'white'; // Set default text color for the container
+        gameOverDiv.style.backgroundColor = 'rgba(0, 0, 0, 0.7)'; // Semi-transparent background
 
         const gameOverTitle = document.createElement('h1');
         gameOverTitle.innerText = 'Game Over';
-        gameOverTitle.style.color = 'white !important'; // Force white color
+        gameOverTitle.style.color = 'white'; // Force white color
+        gameOverTitle.style.marginBottom = '10px';
         
         const finalScore = this.scoreManager.getCurrentScore();
         const finalScoreDiv = document.createElement('div');
         finalScoreDiv.innerText = `Final Score: ${finalScore}`;
         finalScoreDiv.style.fontSize = '24px';
         finalScoreDiv.style.margin = '10px 0';
-        finalScoreDiv.style.color = 'white !important'; // Force white color with !important
+        finalScoreDiv.style.color = 'white'; // Force white color
         
         const highScoreDiv = document.createElement('div');
         highScoreDiv.innerText = `High Score: ${this.scoreManager.getHighScore()}`;
         highScoreDiv.style.fontSize = '20px';
         highScoreDiv.style.marginBottom = '15px';
-        highScoreDiv.style.color = 'white !important'; // Force white color with !important
+        highScoreDiv.style.color = 'white'; // Force white color
         
         const restartButton = document.createElement('button');
         restartButton.id = 'restart-button';
         restartButton.innerText = 'Play Again';
+        restartButton.style.marginBottom = '20px';
+        restartButton.style.padding = '10px 20px';
         
         // Add social sharing buttons
+        console.log("Adding social buttons to game over screen");
         const socialButtonsContainer = socialShare.createSocialButtons(finalScore);
+        socialButtonsContainer.style.display = 'flex';
+        socialButtonsContainer.style.flexWrap = 'wrap';
+        socialButtonsContainer.style.justifyContent = 'center';
+        socialButtonsContainer.style.width = '100%';
+        socialButtonsContainer.style.maxWidth = '400px';
+        socialButtonsContainer.style.margin = '10px auto';
         
         // Arrange elements
         gameOverDiv.appendChild(gameOverTitle);
