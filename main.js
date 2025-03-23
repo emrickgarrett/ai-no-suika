@@ -17,13 +17,6 @@ import {
     SPOTLIGHT_INTENSITY
 } from './constants.js';
 
-// Build configuration - fallback to production when import.meta.env is not available
-const IS_DEVELOPMENT = typeof import.meta !== 'undefined' && 
-                      import.meta.env && 
-                      import.meta.env.VITE_IS_DEVELOPMENT === 'true' ? 
-                      true : false;
-console.log('Development mode:', IS_DEVELOPMENT);
-
 // Import audio manager
 import { audioManager } from './audioManager.js';
 
@@ -193,11 +186,6 @@ class SuikaGame {
 
         // Start game loop
         this.animate(0);
-        
-        // Set up debug panel in development mode
-        if (IS_DEVELOPMENT) {
-            this.initDebugPanel();
-        }
     }
 
     initPhysics() {
@@ -1020,20 +1008,6 @@ class SuikaGame {
             });
         }
         
-        // Clean up debug panel elements if they exist
-        if (IS_DEVELOPMENT) {
-            const debugPanel = document.getElementById('debug-panel');
-            const debugButton = document.getElementById('debug-toggle-button');
-            
-            if (debugPanel && debugPanel.parentNode) {
-                document.body.removeChild(debugPanel);
-            }
-            
-            if (debugButton && debugButton.parentNode) {
-                document.body.removeChild(debugButton);
-            }
-        }
-        
         // Dispose of the renderer
         if (this.renderer) {
             this.renderer.dispose();
@@ -1051,255 +1025,44 @@ class SuikaGame {
         this.fruits = this.fruits.filter(f => f !== fruit);
     }
 
-    spawnSpecificFruit(fruitIndex, x = 0, y = null) {
+    spawnFruit() {
         // Don't spawn if the game is over
         if (this.gameOver) return;
         
-        // If y position isn't provided, place it at the top of the container
-        if (y === null) {
-            y = CONTAINER_HEIGHT + 1;
+        // Don't spawn if we already have a current fruit
+        if (this.currentFruit) return;
+        
+        // Create fruit if there isn't one already
+        if (!this.nextFruitType) {
+            this.generateNextFruit();
         }
         
-        // Validate fruit index
-        if (fruitIndex < 0 || fruitIndex >= FRUITS.length) {
-            console.error(`Invalid fruit index: ${fruitIndex}. Must be between 0 and ${FRUITS.length - 1}`);
-            return;
+        // Calculate position based on current mouse position
+        let positionX = 0; // Default to center
+
+        // If we have a valid intersection point from mouse position, use it
+        if (this.intersectionPoint) {
+            // Clamp within container bounds
+            const radius = this.nextFruitType ? this.nextFruitType.radius : 0.5;
+            const maxX = (CONTAINER_WIDTH / 2) - radius;
+            positionX = Math.max(-maxX, Math.min(maxX, this.intersectionPoint.x));
         }
         
-        // Get the fruit type by index
-        const fruitType = FRUITS[fruitIndex];
+        // Create a new fruit at the mouse X position, top of container
+        const position = new THREE.Vector3(positionX, CONTAINER_HEIGHT + 1, 0);
+        this.currentFruit = this.fruitFactory.createFruit(this.nextFruitType, position, true);
         
-        // Create a new fruit at the specified position
-        const position = new THREE.Vector3(x, y, 0);
-        const fruit = this.fruitFactory.createFruit(fruitType, position, false);
+        // Make the current fruit kinematic until dropped
+        this.currentFruit.body.type = CANNON.Body.KINEMATIC;
+        this.currentFruit.body.velocity.set(0, 0, 0);
+        this.currentFruit.body.angularVelocity.set(0, 0, 0);
         
-        // Make it dynamic and add to the game's fruits array
-        fruit.body.type = CANNON.Body.DYNAMIC;
-        fruit.body.collisionFilterGroup = 1;
-        fruit.body.collisionFilterMask = 1;
-        fruit.body.angularDamping = 0.1;
-        fruit.dropTime = Date.now();
-        
-        // Make fruit fully opaque
-        if (fruit.mesh && typeof fruit.mesh.traverse === 'function') {
-            fruit.mesh.traverse((child) => {
-                if (child.isMesh && child.material) {
-                    child.material = child.material.clone();
-                    child.material.opacity = 1;
-                }
-            });
-        }
-        
-        // Add initial velocity and spin
-        fruit.body.velocity.set(0, -1, 0);
-        fruit.body.angularVelocity.set(0, 0, (Math.random() - 0.5) * 5);
-        fruit.body.fixedRotation = false;
-        
-        // Update mass properties
-        if (typeof fruit.body.updateMassProperties === 'function') {
-            fruit.body.updateMassProperties();
-        }
-        
-        // Add to fruit array
-        this.fruits.push(fruit);
-        
-        return fruit;
+        // Generate the next fruit preview
+        this.generateNextFruit();
     }
 
     initDebugPanel() {
-        // Create debug panel container
-        const debugPanel = document.createElement('div');
-        debugPanel.id = 'debug-panel';
-        debugPanel.style.position = 'fixed';
-        debugPanel.style.top = '10px';
-        debugPanel.style.right = '10px';
-        debugPanel.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
-        debugPanel.style.color = 'white';
-        debugPanel.style.padding = '10px';
-        debugPanel.style.borderRadius = '5px';
-        debugPanel.style.zIndex = '1000';
-        debugPanel.style.maxHeight = '80vh';
-        debugPanel.style.overflowY = 'auto';
-        debugPanel.style.display = 'none'; // Hidden by default
-        
-        // Add toggle button
-        const toggleButton = document.createElement('button');
-        toggleButton.id = 'debug-toggle-button';
-        toggleButton.textContent = '🛠️ Debug';
-        toggleButton.style.position = 'fixed';
-        toggleButton.style.top = '10px';
-        toggleButton.style.right = '10px';
-        toggleButton.style.zIndex = '1001';
-        toggleButton.style.padding = '5px 10px';
-        toggleButton.style.borderRadius = '5px';
-        toggleButton.style.backgroundColor = '#333';
-        toggleButton.style.color = 'white';
-        toggleButton.style.border = '1px solid #555';
-        
-        // Add heading
-        const heading = document.createElement('h3');
-        heading.textContent = 'Fruit Spawner';
-        heading.style.margin = '0 0 10px 0';
-        debugPanel.appendChild(heading);
-        
-        // Create fruit buttons container
-        const fruitContainer = document.createElement('div');
-        fruitContainer.style.display = 'grid';
-        fruitContainer.style.gridTemplateColumns = 'repeat(2, 1fr)';
-        fruitContainer.style.gap = '5px';
-        debugPanel.appendChild(fruitContainer);
-        
-        // Add buttons for each fruit type
-        FRUITS.forEach((fruit, index) => {
-            const button = document.createElement('button');
-            button.textContent = `${fruit.emoji} ${fruit.name}`;
-            button.style.padding = '5px';
-            button.style.margin = '2px';
-            button.style.backgroundColor = '#444';
-            button.style.color = 'white';
-            button.style.border = '1px solid #666';
-            button.style.borderRadius = '3px';
-            button.style.cursor = 'pointer';
-            
-            // Add hover effect
-            button.onmouseover = () => {
-                button.style.backgroundColor = '#555';
-            };
-            button.onmouseout = () => {
-                button.style.backgroundColor = '#444';
-            };
-            
-            // Add click handler to spawn the fruit
-            button.onclick = () => {
-                // Use current mouse X position if available, otherwise center
-                let posX = 0;
-                if (game.intersectionPoint) {
-                    const radius = fruit.radius;
-                    const maxX = (CONTAINER_WIDTH / 2) - radius;
-                    posX = Math.max(-maxX, Math.min(maxX, game.intersectionPoint.x));
-                }
-                
-                // Spawn the fruit at the selected position
-                game.spawnSpecificFruit(index, posX);
-            };
-            
-            fruitContainer.appendChild(button);
-        });
-        
-        // Add position controls
-        const positionControls = document.createElement('div');
-        positionControls.style.marginTop = '10px';
-        positionControls.style.padding = '5px';
-        positionControls.style.backgroundColor = '#333';
-        positionControls.style.borderRadius = '3px';
-        
-        // Add position label
-        const posLabel = document.createElement('div');
-        posLabel.textContent = 'Spawn Multiple:';
-        posLabel.style.marginBottom = '5px';
-        positionControls.appendChild(posLabel);
-        
-        // Add quantity selector
-        const quantityContainer = document.createElement('div');
-        quantityContainer.style.display = 'flex';
-        quantityContainer.style.alignItems = 'center';
-        quantityContainer.style.marginBottom = '5px';
-        
-        const quantityLabel = document.createElement('label');
-        quantityLabel.textContent = 'Quantity: ';
-        quantityLabel.style.marginRight = '5px';
-        
-        const quantityInput = document.createElement('input');
-        quantityInput.type = 'number';
-        quantityInput.min = '1';
-        quantityInput.max = '10';
-        quantityInput.value = '1';
-        quantityInput.style.width = '50px';
-        
-        quantityContainer.appendChild(quantityLabel);
-        quantityContainer.appendChild(quantityInput);
-        positionControls.appendChild(quantityContainer);
-        
-        // Add random spawn button
-        const randomButton = document.createElement('button');
-        randomButton.textContent = '🎲 Spawn Random Assortment';
-        randomButton.style.width = '100%';
-        randomButton.style.padding = '5px';
-        randomButton.style.marginTop = '5px';
-        randomButton.style.backgroundColor = '#444';
-        randomButton.style.color = 'white';
-        randomButton.style.border = '1px solid #666';
-        randomButton.style.borderRadius = '3px';
-        randomButton.style.cursor = 'pointer';
-        
-        randomButton.onclick = () => {
-            const quantity = parseInt(quantityInput.value) || 1;
-            const maxQuantity = 10; // Safety limit
-            
-            // Spawn multiple random fruits across the container width
-            for (let i = 0; i < Math.min(quantity, maxQuantity); i++) {
-                // Get random fruit index (weighted toward smaller fruits)
-                const fruitIndex = Math.min(Math.floor(Math.random() * 5), FRUITS.length - 1);
-                
-                // Calculate a random position within the container
-                const radius = FRUITS[fruitIndex].radius;
-                const maxX = (CONTAINER_WIDTH / 2) - radius;
-                const randomX = (Math.random() * maxX * 2) - maxX;
-                
-                // Random height too for more fun
-                const randomY = CONTAINER_HEIGHT * 0.5 + (Math.random() * CONTAINER_HEIGHT * 0.5);
-                
-                // Spawn with a small delay between each
-                setTimeout(() => {
-                    game.spawnSpecificFruit(fruitIndex, randomX, randomY);
-                }, i * 100);
-            }
-        };
-        
-        positionControls.appendChild(randomButton);
-        debugPanel.appendChild(positionControls);
-        
-        // Add clear all button
-        const clearButton = document.createElement('button');
-        clearButton.textContent = '🧹 Clear All Fruits';
-        clearButton.style.width = '100%';
-        clearButton.style.padding = '5px';
-        clearButton.style.marginTop = '10px';
-        clearButton.style.backgroundColor = '#a33';
-        clearButton.style.color = 'white';
-        clearButton.style.border = '1px solid #c44';
-        clearButton.style.borderRadius = '3px';
-        clearButton.style.cursor = 'pointer';
-        
-        clearButton.onclick = () => {
-            // Remove all fruits from the game
-            while (game.fruits.length > 0) {
-                const fruit = game.fruits.pop();
-                game.removeFruit(fruit);
-            }
-            
-            // Also clear current fruit if it exists
-            if (game.currentFruit) {
-                game.removeFruit(game.currentFruit);
-                game.currentFruit = null;
-                // Generate new current fruit
-                game.spawnFruit();
-            }
-        };
-        
-        debugPanel.appendChild(clearButton);
-        
-        // Toggle debug panel visibility
-        toggleButton.addEventListener('click', () => {
-            const isVisible = debugPanel.style.display !== 'none';
-            debugPanel.style.display = isVisible ? 'none' : 'block';
-            toggleButton.textContent = isVisible ? '🛠️ Debug' : '❌ Close';
-            toggleButton.style.backgroundColor = isVisible ? '#333' : '#a33';
-        });
-        
-        // Add to document
-        document.body.appendChild(toggleButton);
-        document.body.appendChild(debugPanel);
+        // Removed
     }
 
     onMouseMove(event) {
@@ -1516,42 +1279,6 @@ class SuikaGame {
             // Simple text update instead of 3D preview
             nextFruitDisplay.textContent = `Next: ${this.nextFruitType.name}`;
         }
-    }
-    
-    spawnFruit() {
-        // Don't spawn if the game is over
-        if (this.gameOver) return;
-        
-        // Don't spawn if we already have a current fruit
-        if (this.currentFruit) return;
-        
-        // Create fruit if there isn't one already
-        if (!this.nextFruitType) {
-            this.generateNextFruit();
-        }
-        
-        // Calculate position based on current mouse position
-        let positionX = 0; // Default to center
-
-        // If we have a valid intersection point from mouse position, use it
-        if (this.intersectionPoint) {
-            // Clamp within container bounds
-            const radius = this.nextFruitType ? this.nextFruitType.radius : 0.5;
-            const maxX = (CONTAINER_WIDTH / 2) - radius;
-            positionX = Math.max(-maxX, Math.min(maxX, this.intersectionPoint.x));
-        }
-        
-        // Create a new fruit at the mouse X position, top of container
-        const position = new THREE.Vector3(positionX, CONTAINER_HEIGHT + 1, 0);
-        this.currentFruit = this.fruitFactory.createFruit(this.nextFruitType, position, true);
-        
-        // Make the current fruit kinematic until dropped
-        this.currentFruit.body.type = CANNON.Body.KINEMATIC;
-        this.currentFruit.body.velocity.set(0, 0, 0);
-        this.currentFruit.body.angularVelocity.set(0, 0, 0);
-        
-        // Generate the next fruit preview
-        this.generateNextFruit();
     }
 }
 
