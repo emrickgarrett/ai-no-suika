@@ -17,8 +17,11 @@ import {
     SPOTLIGHT_INTENSITY
 } from './constants.js';
 
-// Build configuration - uses Vite's environment variables
-const IS_DEVELOPMENT = import.meta.env.VITE_IS_DEVELOPMENT === 'true';
+// Build configuration - fallback to production when import.meta.env is not available
+const IS_DEVELOPMENT = typeof import.meta !== 'undefined' && 
+                      import.meta.env && 
+                      import.meta.env.VITE_IS_DEVELOPMENT === 'true' ? 
+                      true : false;
 console.log('Development mode:', IS_DEVELOPMENT);
 
 // Import audio manager
