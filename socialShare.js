@@ -46,10 +46,18 @@ class SocialShare {
             () => this.shareOnWhatsApp(shareText)
         );
 
+        // Create Copy Text button for other platforms
+        const copyTextButton = this.createShareButton(
+            '📋 Copy',
+            '#7289DA', // Discord-inspired color
+            () => this.copyShareText(shareText, score)
+        );
+        
         // Add buttons to container
         shareContainer.appendChild(twitterButton);
         shareContainer.appendChild(facebookButton);
         shareContainer.appendChild(whatsAppButton);
+        shareContainer.appendChild(copyTextButton);
         
         return shareContainer;
     }
@@ -137,6 +145,34 @@ class SocialShare {
         // Create WhatsApp share URL
         const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(text + ' ' + this.gameUrl)}`;
         window.open(whatsappUrl, '_blank');
+    }
+    
+    /**
+     * Copy share text to clipboard for other platforms
+     * @param {string} text - Text to share
+     * @param {number} score - Player's score
+     */
+    copyShareText(text, score) {
+        // Create a more engaging challenge message
+        const copyMessage = `I just scored ${score} points in Ai-No-Suika Game! Think you can beat my score? Challenge accepted! Play at ${this.gameUrl} #AiNoSuikaGame #VibeJam`;
+        
+        // Create a temporary textarea element
+        const textarea = document.createElement('textarea');
+        textarea.value = copyMessage;
+        textarea.setAttribute('readonly', '');
+        textarea.style.position = 'absolute';
+        textarea.style.left = '-9999px';
+        document.body.appendChild(textarea);
+        
+        // Select and copy the text
+        textarea.select();
+        document.execCommand('copy');
+        
+        // Remove the textarea
+        document.body.removeChild(textarea);
+        
+        // Show feedback to the user
+        alert('Share text copied to clipboard! Now you can paste it anywhere.');
     }
     
     /**
