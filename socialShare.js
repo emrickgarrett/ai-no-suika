@@ -119,9 +119,11 @@ class SocialShare {
         // Update meta tags first for better preview
         this.updateMetaTags(score);
         
-        // For Facebook we use the standard sharing dialog
-        const shareText = this.defaultMessage.replace('{score}', score);
-        const fbUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(this.gameUrl)}&quote=${encodeURIComponent(shareText)}`;
+        // Create a more engaging challenge message for Facebook
+        const challengeMessage = `I just scored ${score} points in Ai-No-Suika Game! Think you can beat my score? Challenge accepted? #AiNoSuikaGame #VibeJam`;
+        
+        // For Facebook we use the standard sharing dialog with the challenge message
+        const fbUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(this.gameUrl)}&quote=${encodeURIComponent(challengeMessage)}`;
         
         // Open in a new window
         window.open(fbUrl, '_blank');
