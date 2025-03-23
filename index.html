@@ -4,6 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Suika Game</title>
+    <!-- Import maps for module resolution -->
+    <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+        "three/examples/jsm/controls/OrbitControls.js": "https://unpkg.com/three@0.160.0/examples/jsm/controls/OrbitControls.js",
+        "cannon-es": "https://unpkg.com/cannon-es@0.20.0/dist/cannon-es.js",
+        "./constants.js": "./constants.js",
+        "./audioManager.js": "./audioManager.js",
+        "./fruitFactory.js": "./fruitFactory.js",
+        "./textureManager.js": "./textureManager.js",
+        "./scoreManager.js": "./scoreManager.js"
+      }
+    }
+    </script>
     <style>
         body {
             margin: 0;

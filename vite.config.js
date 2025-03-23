@@ -3,15 +3,22 @@ export default {
   // Set the base path to work with GitHub Pages
   base: './',
   build: {
-    // Use IIFE format to avoid module issues
+    // Generate source maps for easier debugging
+    sourcemap: true,
+    // Configure output options
     rollupOptions: {
       output: {
-        format: 'iife',
-        // Ensure everything is in a single file
-        inlineDynamicImports: true
+        // Use ES modules for modern browsers
+        format: 'es',
+        // Ensure proper chunking 
+        manualChunks: undefined,
+        // Add hash to file names for cache busting
+        entryFileNames: 'assets/[name]-[hash].js',
+        chunkFileNames: 'assets/[name]-[hash].js',
+        assetFileNames: 'assets/[name]-[hash].[ext]'
       }
     },
     // Inline smaller assets
-    assetsInlineLimit: 100000
+    assetsInlineLimit: 4096
   }
 }
