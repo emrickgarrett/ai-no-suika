@@ -27,8 +27,130 @@ export class TextureManager {
      * Create paper texture used for the container
      */
     createPaperTexture() {
-        // Create a paper texture
-        this.paperTexture = new THREE.TextureLoader().load('data:image/png;base64,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');
+        // Create a procedural paper bag texture
+        const textureSize = 512;
+        const canvas = document.createElement('canvas');
+        canvas.width = textureSize;
+        canvas.height = textureSize;
+        const ctx = canvas.getContext('2d');
+        
+        // Base paper color - kraft paper brown
+        ctx.fillStyle = '#C49A6C';
+        ctx.fillRect(0, 0, textureSize, textureSize);
+        
+        // Add paper grain texture
+        const imageData = ctx.getImageData(0, 0, textureSize, textureSize);
+        const data = imageData.data;
+        
+        // Add paper grain noise
+        for (let i = 0; i < data.length; i += 4) {
+            // More varied, natural-looking noise for paper grain
+            const noise = Math.random() * 20 - 10;
+            data[i] = Math.max(0, Math.min(255, data[i] + noise));       // R
+            data[i + 1] = Math.max(0, Math.min(255, data[i + 1] + noise * 0.9)); // G
+            data[i + 2] = Math.max(0, Math.min(255, data[i + 2] + noise * 0.8)); // B
+        }
+        
+        ctx.putImageData(imageData, 0, 0);
+        
+        // Add some darker edges for depth
+        const edgeGradient = ctx.createRadialGradient(
+            textureSize/2, textureSize/2, textureSize/2 * 0.7,
+            textureSize/2, textureSize/2, textureSize/2
+        );
+        edgeGradient.addColorStop(0, 'rgba(0, 0, 0, 0)');
+        edgeGradient.addColorStop(1, 'rgba(0, 0, 0, 0.2)');
+        
+        ctx.fillStyle = edgeGradient;
+        ctx.fillRect(0, 0, textureSize, textureSize);
+        
+        // Add creases and fold lines
+        for (let i = 0; i < 10; i++) {
+            const x1 = Math.random() * textureSize;
+            const y1 = Math.random() * textureSize;
+            const x2 = x1 + (Math.random() * 200 - 100);
+            const y2 = y1 + (Math.random() * 200 - 100);
+            const lineWidth = 1 + Math.random() * 3;
+            
+            ctx.beginPath();
+            ctx.moveTo(x1, y1);
+            ctx.lineTo(x2, y2);
+            ctx.strokeStyle = `rgba(90, 60, 40, ${0.05 + Math.random() * 0.1})`;
+            ctx.lineWidth = lineWidth;
+            ctx.stroke();
+        }
+        
+        // Add small stains/discolorations
+        for (let i = 0; i < 20; i++) {
+            const x = Math.random() * textureSize;
+            const y = Math.random() * textureSize;
+            const radius = 5 + Math.random() * 20;
+            
+            const stainGradient = ctx.createRadialGradient(
+                x, y, 0,
+                x, y, radius
+            );
+            
+            const opacity = 0.03 + Math.random() * 0.08;
+            const colorVariation = Math.random();
+            
+            // Vary stain colors between darker brown and slight yellow/orange
+            if (colorVariation < 0.7) {
+                stainGradient.addColorStop(0, `rgba(80, 50, 30, ${opacity})`);
+                stainGradient.addColorStop(1, `rgba(80, 50, 30, 0)`);
+            } else {
+                stainGradient.addColorStop(0, `rgba(190, 160, 100, ${opacity})`);
+                stainGradient.addColorStop(1, `rgba(190, 160, 100, 0)`);
+            }
+            
+            ctx.fillStyle = stainGradient;
+            ctx.beginPath();
+            ctx.arc(x, y, radius, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        
+        // Add vertical crease lines (paper bag typically has these)
+        for (let i = 1; i < 3; i++) {
+            const x = textureSize * (i / 3);
+            
+            ctx.beginPath();
+            ctx.moveTo(x, 0);
+            ctx.lineTo(x, textureSize);
+            ctx.strokeStyle = 'rgba(90, 60, 40, 0.15)';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+            
+            // Add highlight along edge of crease
+            ctx.beginPath();
+            ctx.moveTo(x + 3, 0);
+            ctx.lineTo(x + 3, textureSize);
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        }
+        
+        // Add horizontal fold marks at top and bottom
+        const y1 = textureSize * 0.15;
+        const y2 = textureSize * 0.85;
+        
+        ctx.beginPath();
+        ctx.moveTo(0, y1);
+        ctx.lineTo(textureSize, y1);
+        ctx.strokeStyle = 'rgba(90, 60, 40, 0.2)';
+        ctx.lineWidth = 4;
+        ctx.stroke();
+        
+        ctx.beginPath();
+        ctx.moveTo(0, y2);
+        ctx.lineTo(textureSize, y2);
+        ctx.strokeStyle = 'rgba(90, 60, 40, 0.2)';
+        ctx.lineWidth = 4;
+        ctx.stroke();
+        
+        // Create the final texture
+        this.paperTexture = new THREE.CanvasTexture(canvas);
+        this.paperTexture.wrapS = THREE.RepeatWrapping;
+        this.paperTexture.wrapT = THREE.RepeatWrapping;
     }
     
     /**
