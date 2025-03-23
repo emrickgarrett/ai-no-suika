@@ -30,7 +30,7 @@ class SocialShare {
         
         // Create X (formerly Twitter) share button
         const twitterButton = this.createShareButton(
-            '✖️ X',
+            'X',
             '#000000',
             () => this.shareOnTwitter(shareText, score)
         );
