@@ -100,6 +100,10 @@ class SocialShare {
         // Update meta tags first for better preview
         this.updateMetaTags(score);
         
+        // Add a cache-busting parameter to the preview image URL for Twitter
+        const cachedImageUrl = `${this.previewImageUrl}?v=${Date.now()}`;
+        this.updateMetaTag('twitter:image', cachedImageUrl);
+        
         // Create Twitter intent URL with score and hashtags
         const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(this.gameUrl)}&hashtags=AiNoSuikaGame,VibeJam`;
         
