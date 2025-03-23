@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generate Preview Image</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+        .canvas-container {
+            margin: 20px 0;
+            border: 1px solid #ccc;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        #preview-canvas {
+            background-color: #333;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 20px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .instructions {
+            max-width: 800px;
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #e9f7ef;
+            border-radius: 5px;
+            border-left: 5px solid #4CAF50;
+        }
+    </style>
+</head>
+<body>
+    <h1>Ai-No-Suika Game Preview Image Generator</h1>
+    
+    <div class="instructions">
+        <h2>Instructions:</h2>
+        <ol>
+            <li>Click the "Generate Preview Image" button below to create a social media preview image.</li>
+            <li>Right-click on the generated image and select "Save Image As..." to save it as "preview.png".</li>
+            <li>Upload the saved image to your GitHub repository.</li>
+            <li>The image will be accessible at: <code>https://raw.githubusercontent.com/EmrickGarrett/ai-no-suika/main/preview.png</code></li>
+        </ol>
+    </div>
+    
+    <div class="canvas-container">
+        <canvas id="preview-canvas" width="1200" height="630"></canvas>
+    </div>
+    
+    <button id="generate-btn">Generate Preview Image</button>
+    
+    <script>
+        // Fruit emojis
+        const fruitEmojis = ['🍒', '🍓', '🍊', '🍋', '🍎', '🍐', '🍑', '🍉', '🍇'];
+        
+        // Function to draw the preview image
+        function generatePreviewImage() {
+            const canvas = document.getElementById('preview-canvas');
+            const ctx = canvas.getContext('2d');
+            const width = canvas.width;
+            const height = canvas.height;
+            
+            // Fill background with gradient
+            const gradient = ctx.createLinearGradient(0, 0, 0, height);
+            gradient.addColorStop(0, '#1a1a1a');
+            gradient.addColorStop(1, '#333333');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, width, height);
+            
+            // Add game title
+            ctx.font = 'bold 80px Arial, sans-serif';
+            ctx.fillStyle = '#ffffff';
+            ctx.textAlign = 'center';
+            ctx.fillText('Ai-No-Suika Game', width / 2, 120);
+            
+            // Add tagline
+            ctx.font = 'bold 60px Arial, sans-serif';
+            ctx.fillStyle = '#ff9900';
+            ctx.fillText('Stack Fruits & Score Big!', width / 2, 200);
+            
+            // Add challenge text
+            ctx.font = 'bold 40px Arial, sans-serif';
+            ctx.fillStyle = '#ffffff';
+            ctx.fillText('Can you beat the high score?', width / 2, 280);
+            
+            // Draw decorative fruits
+            drawDecorativeFruits(ctx, width, height);
+            
+            // Add game URL at the bottom
+            ctx.font = '24px Arial, sans-serif';
+            ctx.fillStyle = '#ffffff';
+            ctx.fillText('https://emrickgarrett.github.io/ai-no-suika/', width / 2, height - 50);
+            
+            // Add decorative border
+            ctx.strokeStyle = '#ff9900';
+            ctx.lineWidth = 10;
+            ctx.strokeRect(20, 20, width - 40, height - 40);
+        }
+        
+        // Function to draw decorative fruits
+        function drawDecorativeFruits(ctx, width, height) {
+            const fruitPositions = [];
+            
+            // Generate positions for fruits
+            for (let i = 0; i < 15; i++) {
+                const size = 60 + Math.floor(Math.random() * 40);
+                const x = 100 + Math.random() * (width - 200);
+                const y = 320 + Math.random() * (height - 450);
+                
+                // Check for overlaps
+                let overlaps = false;
+                for (const pos of fruitPositions) {
+                    const dx = pos.x - x;
+                    const dy = pos.y - y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    if (distance < (pos.size/2 + size/2)) {
+                        overlaps = true;
+                        break;
+                    }
+                }
+                
+                if (!overlaps) {
+                    const fruit = fruitEmojis[Math.floor(Math.random() * fruitEmojis.length)];
+                    fruitPositions.push({ x, y, size, fruit });
+                }
+            }
+            
+            // Draw the fruits
+            fruitPositions.forEach(pos => {
+                ctx.font = `${pos.size}px Arial`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(pos.fruit, pos.x, pos.y);
+            });
+        }
+        
+        // Event listener for generate button
+        document.getElementById('generate-btn').addEventListener('click', generatePreviewImage);
+        
+        // Auto-generate on page load
+        window.onload = generatePreviewImage;
+    </script>
+</body>
+</html>

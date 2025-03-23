@@ -821,22 +821,24 @@ class SuikaGame {
         const gameOverDiv = document.getElementById('game-over');
         gameOverDiv.innerHTML = ''; // Clear any existing content
         gameOverDiv.style.display = 'flex';
+        gameOverDiv.style.color = 'white'; // Set default text color for the container
 
         const gameOverTitle = document.createElement('h1');
         gameOverTitle.innerText = 'Game Over';
+        gameOverTitle.style.color = 'white !important'; // Force white color
         
         const finalScore = this.scoreManager.getCurrentScore();
         const finalScoreDiv = document.createElement('div');
         finalScoreDiv.innerText = `Final Score: ${finalScore}`;
         finalScoreDiv.style.fontSize = '24px';
         finalScoreDiv.style.margin = '10px 0';
-        finalScoreDiv.style.color = 'white'; // Set text color to white
+        finalScoreDiv.style.color = 'white !important'; // Force white color with !important
         
         const highScoreDiv = document.createElement('div');
         highScoreDiv.innerText = `High Score: ${this.scoreManager.getHighScore()}`;
         highScoreDiv.style.fontSize = '20px';
         highScoreDiv.style.marginBottom = '15px';
-        highScoreDiv.style.color = 'white'; // Set text color to white
+        highScoreDiv.style.color = 'white !important'; // Force white color with !important
         
         const restartButton = document.createElement('button');
         restartButton.id = 'restart-button';

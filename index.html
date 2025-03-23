@@ -1,18 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Suika Game</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ai-No-Suika Game</title>
     
-    <!-- Social Media Meta Tags -->
-    <meta property="og:title" content="Ai-No-Suika Game Challenge">
-    <meta property="og:description" content="I scored points in this addictive fruit-stacking game! Can you beat my score?">
-    <meta property="og:url" content="https://emrickgarrett.github.io/ai-no-suika/">
-    <meta property="og:type" content="game">
-    <meta name="twitter:card" content="summary">
-    <meta name="twitter:title" content="Ai-No-Suika Game Challenge">
-    <meta name="twitter:description" content="I scored points in this addictive fruit-stacking game! Can you beat my score?">
+    <!-- Social media sharing meta tags -->
+    <meta property="og:title" content="Ai-No-Suika Game - Try to beat my score!" />
+    <meta property="og:description" content="Stack fruits to create bigger fruits and get the highest score in this addictive Suika Game!" />
+    <meta property="og:image" content="https://raw.githubusercontent.com/EmrickGarrett/ai-no-suika/main/preview.png" />
+    <meta property="og:url" content="https://emrickgarrett.github.io/ai-no-suika/" />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Ai-No-Suika Game - Try to beat my score!" />
+    <meta name="twitter:description" content="Stack fruits to create bigger fruits and get the highest score in this addictive Suika Game!" />
+    <meta name="twitter:image" content="https://raw.githubusercontent.com/EmrickGarrett/ai-no-suika/main/preview.png" />
     <meta name="twitter:site" content="@YourGameHandle">
     
     <!-- Import maps for module resolution -->
@@ -133,6 +135,10 @@
         <button id="restart-button">Play Again</button>
     </div>
     <a target="_blank" href="https://jam.pieter.com" class="jam-link">🕹️ Vibe Jam 2025</a>
+    
+    <!-- Hidden canvas for generating share images -->
+    <canvas id="share-canvas" style="display: none; position: absolute; left: -9999px;" width="1200" height="630"></canvas>
+    
     <script type="module" src="./main.js"></script>
 </body>
 </html>

@@ -3,9 +3,40 @@
 class SocialShare {
     constructor() {
         this.gameUrl = 'https://emrickgarrett.github.io/ai-no-suika/';
-        // Using a basic embedded image (fruit emoji) for preview since external URLs aren't working
-        this.previewImage = 'data:image/png;base64,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';
         this.defaultMessage = "I scored {score} in Ai-No-Suika Game! Can you beat my score?";
+        
+        // Fruit emojis for the preview image
+        this.fruitEmojis = ['🍒', '🍓', '🍊', '🍋', '🍎', '🍐', '🍑', '🍉', '🍇'];
+        
+        // Initialize the share canvas
+        this.canvas = document.getElementById('share-canvas');
+        this.ctx = this.canvas && this.canvas.getContext('2d');
+        
+        // Preload fruits for preview
+        this.fruitImages = {};
+        this.preloadImages();
+    }
+    
+    /**
+     * Preload fruit images for use in share preview
+     */
+    preloadImages() {
+        const fruitsToLoad = [
+            { name: 'cherry', src: './assets/cherry.png' },
+            { name: 'strawberry', src: './assets/strawberry.png' },
+            { name: 'orange', src: './assets/orange.png' },
+            { name: 'watermelon', src: './assets/watermelon.png' },
+            { name: 'grape', src: './assets/grape.png' }
+        ];
+        
+        fruitsToLoad.forEach(fruit => {
+            const img = new Image();
+            img.src = fruit.src;
+            img.onerror = () => {
+                console.log(`Failed to load ${fruit.name} image, will fall back to emoji`);
+            };
+            this.fruitImages[fruit.name] = img;
+        });
     }
 
     /**
@@ -24,18 +55,21 @@ class SocialShare {
         // Create share text with the score
         const shareText = this.defaultMessage.replace('{score}', score);
         
+        // Generate preview image with the score
+        const previewImageUrl = this.generateShareImage(score);
+        
         // Create Twitter share button
         const twitterButton = this.createShareButton(
             '🐦 Twitter',
             '#1DA1F2',
-            () => this.shareOnTwitter(shareText, score)
+            () => this.shareOnTwitter(shareText, score, previewImageUrl)
         );
         
         // Create Facebook share button
         const facebookButton = this.createShareButton(
             '👍 Facebook',
             '#4267B2',
-            () => this.shareOnFacebook(score)
+            () => this.shareOnFacebook(score, previewImageUrl)
         );
         
         // Create WhatsApp share button
@@ -91,23 +125,158 @@ class SocialShare {
     }
 
     /**
+     * Generate a share image with the score
+     * @param {number} score - The player's score
+     * @returns {string} Data URL for the share image
+     */
+    generateShareImage(score) {
+        if (!this.canvas || !this.ctx) {
+            return ''; // Canvas not available
+        }
+        
+        const ctx = this.ctx;
+        const canvas = this.canvas;
+        const width = canvas.width;
+        const height = canvas.height;
+        
+        // Fill background with gradient
+        const gradient = ctx.createLinearGradient(0, 0, 0, height);
+        gradient.addColorStop(0, '#1a1a1a');
+        gradient.addColorStop(1, '#333333');
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, width, height);
+        
+        // Add game title
+        ctx.font = 'bold 80px Arial, sans-serif';
+        ctx.fillStyle = '#ffffff';
+        ctx.textAlign = 'center';
+        ctx.fillText('Ai-No-Suika Game', width / 2, 120);
+        
+        // Add score
+        ctx.font = 'bold 60px Arial, sans-serif';
+        ctx.fillStyle = '#ff9900';
+        ctx.fillText(`Score: ${score}`, width / 2, 200);
+        
+        // Add challenge text
+        ctx.font = 'bold 40px Arial, sans-serif';
+        ctx.fillStyle = '#ffffff';
+        ctx.fillText('Can you beat my score?', width / 2, 280);
+        
+        // Draw decorative fruits
+        this.drawDecorativeFruits(ctx, width, height);
+        
+        // Add game URL at the bottom
+        ctx.font = '24px Arial, sans-serif';
+        ctx.fillStyle = '#ffffff';
+        ctx.fillText(this.gameUrl, width / 2, height - 50);
+        
+        // Add decorative border
+        ctx.strokeStyle = '#ff9900';
+        ctx.lineWidth = 10;
+        ctx.strokeRect(20, 20, width - 40, height - 40);
+        
+        // Return image as data URL
+        return canvas.toDataURL('image/png');
+    }
+    
+    /**
+     * Draw decorative fruits on the canvas
+     * @param {CanvasRenderingContext2D} ctx - Canvas context
+     * @param {number} width - Canvas width
+     * @param {number} height - Canvas height 
+     */
+    drawDecorativeFruits(ctx, width, height) {
+        // Draw either image-based fruits if loaded, or fall back to emojis
+        const fruitPositions = [];
+        
+        // Attempt to position fruits without overlapping
+        for (let i = 0; i < 15; i++) {
+            const size = 40 + Math.random() * 100;
+            const x = 100 + Math.random() * (width - 200);
+            const y = 320 + Math.random() * (height - 450);
+            
+            // Check for overlaps
+            let overlaps = false;
+            for (const pos of fruitPositions) {
+                const dx = pos.x - x;
+                const dy = pos.y - y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance < (pos.size/2 + size/2)) {
+                    overlaps = true;
+                    break;
+                }
+            }
+            
+            if (!overlaps) {
+                const fruitType = this.fruitEmojis[Math.floor(Math.random() * this.fruitEmojis.length)];
+                fruitPositions.push({ x, y, size, type: fruitType });
+            }
+        }
+        
+        // Draw the fruits (either as emojis or images)
+        fruitPositions.forEach(pos => {
+            // Try to draw a fruit image if available
+            let fruitDrawn = false;
+            
+            if (pos.type === '🍒' && this.fruitImages.cherry && this.fruitImages.cherry.complete) {
+                ctx.drawImage(this.fruitImages.cherry, pos.x - pos.size/2, pos.y - pos.size/2, pos.size, pos.size);
+                fruitDrawn = true;
+            } else if (pos.type === '🍓' && this.fruitImages.strawberry && this.fruitImages.strawberry.complete) {
+                ctx.drawImage(this.fruitImages.strawberry, pos.x - pos.size/2, pos.y - pos.size/2, pos.size, pos.size);
+                fruitDrawn = true;
+            } else if (pos.type === '🍊' && this.fruitImages.orange && this.fruitImages.orange.complete) {
+                ctx.drawImage(this.fruitImages.orange, pos.x - pos.size/2, pos.y - pos.size/2, pos.size, pos.size);
+                fruitDrawn = true;
+            } else if (pos.type === '🍉' && this.fruitImages.watermelon && this.fruitImages.watermelon.complete) {
+                ctx.drawImage(this.fruitImages.watermelon, pos.x - pos.size/2, pos.y - pos.size/2, pos.size, pos.size);
+                fruitDrawn = true;
+            } else if (pos.type === '🍇' && this.fruitImages.grape && this.fruitImages.grape.complete) {
+                ctx.drawImage(this.fruitImages.grape, pos.x - pos.size/2, pos.y - pos.size/2, pos.size, pos.size);
+                fruitDrawn = true;
+            }
+            
+            // Fall back to emoji if no image
+            if (!fruitDrawn) {
+                ctx.font = `${pos.size}px Arial`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(pos.type, pos.x, pos.y);
+            }
+        });
+    }
+
+    /**
      * Share score on Twitter
      * @param {string} text - Text to share
      * @param {number} score - Player's score
+     * @param {string} imageUrl - Data URL of the preview image (not used for Twitter)
      */
-    shareOnTwitter(text, score) {
+    shareOnTwitter(text, score, imageUrl) {
         // Create Twitter intent URL with score and hashtag
         const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(this.gameUrl)}&hashtags=AiNoSuikaGame`;
+        
+        // Open in a new window
         window.open(twitterUrl, '_blank');
+        
+        // For Twitter, we don't use the generated image directly since Twitter fetches the image from the URL
+        // Instead, we update the metadata when sharing
+        this.updateMetaTags(score, imageUrl);
     }
 
     /**
      * Share score on Facebook
      * @param {number} score - Player's score
+     * @param {string} imageUrl - Data URL of the preview image (used for direct Facebook share)
      */
-    shareOnFacebook(score) {
-        // Use Facebook's sharing dialog
-        const fbUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(this.gameUrl)}&quote=${encodeURIComponent(this.defaultMessage.replace('{score}', score))}`;
+    shareOnFacebook(score, imageUrl) {
+        // Update meta tags first for better preview
+        this.updateMetaTags(score, imageUrl);
+        
+        // For Facebook we use the standard sharing dialog
+        const shareText = this.defaultMessage.replace('{score}', score);
+        const fbUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(this.gameUrl)}&quote=${encodeURIComponent(shareText)}`;
+        
+        // Open in a new window
         window.open(fbUrl, '_blank');
     }
 
@@ -122,51 +291,43 @@ class SocialShare {
     }
     
     /**
-     * Create a blob URL for the preview image (for testing)
-     * @returns {string} Blob URL for the preview image
+     * Update the meta tags with the player's score and updated image
+     * @param {number} score - Player's score
+     * @param {string} imageUrl - Data URL of the preview image
      */
-    getPreviewImageBlobUrl() {
-        // Convert base64 to blob
-        const byteString = atob(this.previewImage.split(',')[1]);
-        const mimeString = this.previewImage.split(',')[0].split(':')[1].split(';')[0];
-        const ab = new ArrayBuffer(byteString.length);
-        const ia = new Uint8Array(ab);
+    updateMetaTags(score, imageUrl) {
+        // Update meta tags to include the score and point to the generated image
+        const shareText = this.defaultMessage.replace('{score}', score);
         
-        for (let i = 0; i < byteString.length; i++) {
-            ia[i] = byteString.charCodeAt(i);
-        }
+        // Update Open Graph title and description
+        this.updateMetaTag('og:title', 'Ai-No-Suika Game - Score: ' + score);
+        this.updateMetaTag('og:description', shareText);
         
-        const blob = new Blob([ab], {type: mimeString});
-        return URL.createObjectURL(blob);
+        // Update Twitter Card title and description
+        this.updateMetaTag('twitter:title', 'Ai-No-Suika Game - Score: ' + score);
+        this.updateMetaTag('twitter:description', shareText);
+        
+        // For advanced implementation, we could set up server-side image generation
+        // But that's beyond the scope of this client-side implementation
     }
     
     /**
-     * Create open graph meta tags for better social media preview
-     * Should be called during initialization
+     * Update a meta tag in the document head
+     * @param {string} property - Meta tag property to update
+     * @param {string} content - New content value
      */
-    setupSocialMetaTags() {
-        // Create Open Graph meta tags for better link previews
-        const metaTags = [
-            { property: 'og:title', content: 'Ai-No-Suika Game Challenge' },
-            { property: 'og:description', content: 'Can you beat my score in this addictive fruit-stacking game?' },
-            { property: 'og:image', content: this.previewImage },
-            { property: 'og:url', content: this.gameUrl },
-            { property: 'og:type', content: 'website' },
-            { property: 'twitter:card', content: 'summary_large_image' },
-            { property: 'twitter:title', content: 'Ai-No-Suika Game Challenge' },
-            { property: 'twitter:description', content: 'Can you beat my score in this addictive fruit-stacking game?' },
-            { property: 'twitter:image', content: this.previewImage }
-        ];
-
-        // Add meta tags to head if they don't already exist
-        metaTags.forEach(tag => {
-            if (!document.querySelector(`meta[property="${tag.property}"]`)) {
-                const meta = document.createElement('meta');
-                meta.setAttribute('property', tag.property);
-                meta.setAttribute('content', tag.content);
-                document.head.appendChild(meta);
-            }
-        });
+    updateMetaTag(property, content) {
+        let metaTag = document.querySelector(`meta[property="${property}"]`) || 
+                     document.querySelector(`meta[name="${property}"]`);
+        
+        if (metaTag) {
+            metaTag.setAttribute('content', content);
+        } else {
+            metaTag = document.createElement('meta');
+            metaTag.setAttribute(property.includes(':') ? 'property' : 'name', property);
+            metaTag.setAttribute('content', content);
+            document.head.appendChild(metaTag);
+        }
     }
 }
 
