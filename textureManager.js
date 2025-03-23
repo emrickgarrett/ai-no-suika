@@ -13,7 +13,6 @@ export class TextureManager {
         this.appleTexture = null;
         this.pearTexture = null;
         this.peachTexture = null;
-        this.pineappleTexture = null;
         this.pumpkinTexture = null;
         this.melonTexture = null;
         this.paperTexture = null;
@@ -305,29 +304,78 @@ export class TextureManager {
         this.strawberryTexture.wrapS = THREE.RepeatWrapping;
         this.strawberryTexture.wrapT = THREE.RepeatWrapping;
 
-        // Watermelon texture with noise pattern
+        // Realistic watermelon texture with proper stripes
         const watermelonTextureSize = 512;
         const watermelonCanvas = document.createElement('canvas');
         watermelonCanvas.width = watermelonTextureSize;
         watermelonCanvas.height = watermelonTextureSize;
         const watermelonCtx = watermelonCanvas.getContext('2d');
         
-        // Create base color
-        watermelonCtx.fillStyle = '#00BB2D';
+        // Base dark green color
+        const baseGreen = '#006400'; // Dark green
+        watermelonCtx.fillStyle = baseGreen;
         watermelonCtx.fillRect(0, 0, watermelonTextureSize, watermelonTextureSize);
-        
-        // Add noise pattern
-        const imageDataWatermelon = watermelonCtx.getImageData(0, 0, watermelonTextureSize, watermelonTextureSize);
-        const dataWatermelon = imageDataWatermelon.data;
-        
-        for (let i = 0; i < dataWatermelon.length; i += 4) {
-            const noise = Math.random() * 30 - 15;
-            dataWatermelon[i] = Math.max(0, Math.min(255, dataWatermelon[i] + noise));     // R
-            dataWatermelon[i + 1] = Math.max(0, Math.min(255, dataWatermelon[i + 1] + noise)); // G
-            dataWatermelon[i + 2] = Math.max(0, Math.min(255, dataWatermelon[i + 2] + noise)); // B
+
+        // Create radial coordinates for consistent stripe patterns
+        for (let y = 0; y < watermelonTextureSize; y++) {
+            for (let x = 0; x < watermelonTextureSize; x++) {
+                // Calculate position relative to center
+                const xRel = x - watermelonTextureSize/2;
+                const yRel = y - watermelonTextureSize/2;
+                
+                // Calculate angle and distance for radial pattern
+                const angle = Math.atan2(yRel, xRel);
+                const dist = Math.sqrt(xRel*xRel + yRel*yRel) / (watermelonTextureSize/2);
+                
+                // Skip pixels outside the circle
+                if (dist > 1) continue;
+                
+                // Create stripe pattern (8 stripes)
+                const stripeFrequency = 8;
+                const stripeWidth = 0.5; // Width of light green stripes (0-1)
+                
+                // Use angle to create vertical stripe pattern
+                const stripeValue = (Math.sin(angle * stripeFrequency) + 1) / 2; // 0-1
+                
+                // Determine if we're in a light or dark stripe area
+                if (stripeValue > (1 - stripeWidth)) {
+                    // Light green stripe
+                    watermelonCtx.fillStyle = '#32CD32'; // Lime green
+                    watermelonCtx.fillRect(x, y, 1, 1);
+                    
+                    // Add mottled texture to light areas
+                    if (Math.random() > 0.85) {
+                        watermelonCtx.fillStyle = '#228B22'; // Forest green
+                        watermelonCtx.fillRect(x, y, 1, 1);
+                    }
+                } else {
+                    // Add mottled texture to dark areas
+                    if (Math.random() > 0.85) {
+                        watermelonCtx.fillStyle = '#004200'; // Very dark green
+                        watermelonCtx.fillRect(x, y, 1, 1);
+                    }
+                }
+            }
         }
         
-        watermelonCtx.putImageData(imageDataWatermelon, 0, 0);
+        // Add highlight reflections like real watermelons have
+        for (let i = 0; i < 5; i++) {
+            const x = watermelonTextureSize * (0.3 + Math.random() * 0.4);
+            const y = watermelonTextureSize * (0.3 + Math.random() * 0.4);
+            const radius = 10 + Math.random() * 30;
+            
+            const highlightGradient = watermelonCtx.createRadialGradient(
+                x, y, 0,
+                x, y, radius
+            );
+            highlightGradient.addColorStop(0, 'rgba(255, 255, 255, 0.2)');
+            highlightGradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+            
+            watermelonCtx.fillStyle = highlightGradient;
+            watermelonCtx.beginPath();
+            watermelonCtx.arc(x, y, radius, 0, Math.PI * 2);
+            watermelonCtx.fill();
+        }
         
         this.watermelonTexture = new THREE.CanvasTexture(watermelonCanvas);
         this.watermelonTexture.wrapS = THREE.RepeatWrapping;
@@ -555,34 +603,6 @@ export class TextureManager {
         this.pumpkinTexture = new THREE.CanvasTexture(pumpkinCanvas);
         this.pumpkinTexture.wrapS = THREE.RepeatWrapping;
         this.pumpkinTexture.wrapT = THREE.RepeatWrapping;
-
-        // Pineapple texture with scale pattern
-        const pineappleTextureSize = 512;
-        const pineappleCanvas = document.createElement('canvas');
-        pineappleCanvas.width = pineappleTextureSize;
-        pineappleCanvas.height = pineappleTextureSize;
-        const pineappleCtx = pineappleCanvas.getContext('2d');
-        
-        // Base color
-        pineappleCtx.fillStyle = '#FFE135';
-        pineappleCtx.fillRect(0, 0, pineappleTextureSize, pineappleTextureSize);
-        
-        // Add diamond pattern
-        const scaleSize = 20;
-        for (let y = 0; y < pineappleTextureSize; y += scaleSize) {
-            for (let x = 0; x < pineappleTextureSize; x += scaleSize) {
-                pineappleCtx.beginPath();
-                pineappleCtx.moveTo(x, y);
-                pineappleCtx.lineTo(x + scaleSize/2, y + scaleSize);
-                pineappleCtx.lineTo(x + scaleSize, y);
-                pineappleCtx.strokeStyle = '#B8860B';
-                pineappleCtx.stroke();
-            }
-        }
-        
-        this.pineappleTexture = new THREE.CanvasTexture(pineappleCanvas);
-        this.pineappleTexture.wrapS = THREE.RepeatWrapping;
-        this.pineappleTexture.wrapT = THREE.RepeatWrapping;
 
         // Melon texture with net pattern
         const melonTextureSize = 512;

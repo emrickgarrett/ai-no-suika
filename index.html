@@ -4,6 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Suika Game</title>
+    
+    <!-- Social Media Meta Tags -->
+    <meta property="og:title" content="Ai-No-Suika Game Challenge">
+    <meta property="og:description" content="I scored points in this addictive fruit-stacking game! Can you beat my score?">
+    <meta property="og:url" content="https://emrickgarrett.github.io/ai-no-suika/">
+    <meta property="og:type" content="game">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Ai-No-Suika Game Challenge">
+    <meta name="twitter:description" content="I scored points in this addictive fruit-stacking game! Can you beat my score?">
+    <meta name="twitter:site" content="@YourGameHandle">
+    
     <!-- Import maps for module resolution -->
     <script type="importmap">
     {
@@ -15,7 +26,8 @@
         "./audioManager.js": "./audioManager.js",
         "./fruitFactory.js": "./fruitFactory.js",
         "./textureManager.js": "./textureManager.js",
-        "./scoreManager.js": "./scoreManager.js"
+        "./scoreManager.js": "./scoreManager.js",
+        "./socialShare.js": "./socialShare.js"
       }
     }
     </script>
@@ -92,6 +104,24 @@
             border-top-left-radius: 12px;
             z-index: 10000;
             border: 1px solid #fff;
+        }
+        .social-share-container {
+            margin-top: 15px;
+        }
+        .social-button {
+            padding: 8px 15px;
+            border-radius: 5px;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+            margin: 0 5px;
+            transition: transform 0.1s, opacity 0.2s;
+        }
+        .social-button:hover {
+            opacity: 0.9;
+            transform: scale(1.05);
         }
     </style>
 </head>

@@ -29,6 +29,10 @@ import { ScoreManager } from './scoreManager.js';
 // Import fruit factory
 import { FruitFactory } from './fruitFactory.js';
 
+// Import social share functionality
+import { socialShare } from './socialShare.js';
+
+// Import fruit data
 const FRUITS = [
     { 
         name: 'Cherry', 
@@ -136,6 +140,8 @@ class SuikaGame {
         this.animationFrameId = null;
         this.fruitFactory = null;
         this.lastTimestamp = 0; // For delta time calculation
+        this.recentFruits = [];
+        this.maxRecentFruits = 3; // Keep track of last 3 fruits
     }
     
     init() {
@@ -468,8 +474,49 @@ class SuikaGame {
     }
 
     getRandomSmallFruit() {
-        // Only return one of the first three fruit types
-        return FRUITS[Math.floor(Math.random() * 3)];
+        // Only use the first three fruit types (index 0, 1, 2)
+        const smallFruits = FRUITS.slice(0, 3);
+        
+        // Weight the fruits based on recent history
+        const weightedFruits = smallFruits.map((fruit, index) => {
+            // Calculate how recently this fruit was used (if at all)
+            const recentIndex = this.recentFruits.findIndex(recent => recent.name === fruit.name);
+            
+            // If this fruit hasn't been used recently, give it a higher weight
+            if (recentIndex === -1) {
+                return { fruit, weight: 3 }; // Higher weight for fruits not recently used
+            } else {
+                // Decrease weight based on recency (most recent = lowest weight)
+                const recency = this.recentFruits.length - recentIndex;
+                return { fruit, weight: 3 - recency };
+            }
+        });
+        
+        // Calculate total weight
+        const totalWeight = weightedFruits.reduce((sum, item) => sum + Math.max(0.5, item.weight), 0);
+        
+        // Select a random point within the total weight
+        let randomPoint = Math.random() * totalWeight;
+        
+        // Find which fruit corresponds to this random point
+        let selectedFruit = smallFruits[0]; // Default in case of errors
+        
+        for (const { fruit, weight } of weightedFruits) {
+            const adjustedWeight = Math.max(0.5, weight); // Ensure minimum weight
+            if (randomPoint <= adjustedWeight) {
+                selectedFruit = fruit;
+                break;
+            }
+            randomPoint -= adjustedWeight;
+        }
+        
+        // Update recent fruits history
+        this.recentFruits.unshift(selectedFruit);
+        if (this.recentFruits.length > this.maxRecentFruits) {
+            this.recentFruits.pop();
+        }
+        
+        return selectedFruit;
     }
 
     updateScore(points) {
@@ -510,10 +557,6 @@ class SuikaGame {
                 // Delegate to fruitFactory for consistent implementation
                 return this.fruitFactory.createFruitGeometry(type);
             }
-            case 'pineapple': {
-                // Delegate to fruitFactory for consistent implementation
-                return this.fruitFactory.createFruitGeometry(type);
-            }
             case 'melon': {
                 // Delegate to fruitFactory for consistent implementation
                 return this.fruitFactory.createFruitGeometry(type);
@@ -545,16 +588,6 @@ class SuikaGame {
         if (type && type.shape === 'watermelon' && type.radius > 1.5) {
             // For watermelon, use a cylinder shape for better stacking
             shape = new CANNON.Cylinder(radius, radius, radius * 1.5, 12);
-        } else if (type && type.shape === 'pineapple') {
-            // For pineapple, use a cylinder that better matches its elongated shape
-            // The pineapple visual is a cylinder with height 2*radius plus a cone on top
-            // So we'll use a cylinder with slightly taller height for better collision
-            shape = new CANNON.Cylinder(radius * 0.7, radius * 0.7, radius * 2.4, 10);
-            
-            // Use quaternion to rotate the cylinder so it's upright (y-axis aligned)
-            const quat = new CANNON.Quaternion();
-            quat.setFromAxisAngle(new CANNON.Vec3(1, 0, 0), Math.PI / 2);
-            shape.transformAllPoints(new CANNON.Vec3(), quat);
         } else {
             // For other fruits, use a sphere shape
             shape = new CANNON.Sphere(radius);
@@ -785,66 +818,55 @@ class SuikaGame {
     
     showGameOverScreen() {
         // Create game over UI
-        const gameOverDiv = document.createElement('div');
-        gameOverDiv.style.position = 'absolute';
-        gameOverDiv.style.top = '50%';
-        gameOverDiv.style.left = '50%';
-        gameOverDiv.style.transform = 'translate(-50%, -50%)';
-        gameOverDiv.style.color = 'white';
-        gameOverDiv.style.fontSize = '36px';
-        gameOverDiv.style.textAlign = 'center';
-        gameOverDiv.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
-        gameOverDiv.style.padding = '20px';
-        gameOverDiv.style.borderRadius = '10px';
-        gameOverDiv.style.zIndex = '1000';
-        
-        const restartButton = document.createElement('button');
-        restartButton.id = 'restart-button';
-        restartButton.innerText = 'Play Again';
-        restartButton.style.padding = '10px 20px';
-        restartButton.style.marginTop = '20px';
-        restartButton.style.cursor = 'pointer';
-        restartButton.style.fontSize = '18px';
-        restartButton.style.backgroundColor = '#4CAF50';
-        restartButton.style.color = 'white';
-        restartButton.style.border = 'none';
-        restartButton.style.borderRadius = '5px';
-        
-        const gameOverTitle = document.createElement('div');
+        const gameOverDiv = document.getElementById('game-over');
+        gameOverDiv.innerHTML = ''; // Clear any existing content
+        gameOverDiv.style.display = 'flex';
+
+        const gameOverTitle = document.createElement('h1');
         gameOverTitle.innerText = 'Game Over';
         
+        const finalScore = this.scoreManager.getCurrentScore();
         const finalScoreDiv = document.createElement('div');
-        finalScoreDiv.innerText = `Final Score: ${this.scoreManager.getCurrentScore()}`;
+        finalScoreDiv.innerText = `Final Score: ${finalScore}`;
         finalScoreDiv.style.fontSize = '24px';
+        finalScoreDiv.style.margin = '10px 0';
+        finalScoreDiv.style.color = 'white'; // Set text color to white
         
         const highScoreDiv = document.createElement('div');
         highScoreDiv.innerText = `High Score: ${this.scoreManager.getHighScore()}`;
         highScoreDiv.style.fontSize = '20px';
+        highScoreDiv.style.marginBottom = '15px';
+        highScoreDiv.style.color = 'white'; // Set text color to white
         
+        const restartButton = document.createElement('button');
+        restartButton.id = 'restart-button';
+        restartButton.innerText = 'Play Again';
+        
+        // Add social sharing buttons
+        const socialButtonsContainer = socialShare.createSocialButtons(finalScore);
+        
+        // Arrange elements
         gameOverDiv.appendChild(gameOverTitle);
         gameOverDiv.appendChild(finalScoreDiv);
         gameOverDiv.appendChild(highScoreDiv);
         gameOverDiv.appendChild(restartButton);
-        
-        document.body.appendChild(gameOverDiv);
+        gameOverDiv.appendChild(socialButtonsContainer);
         
         // Restart with a completely new game instance
-        restartButton.addEventListener('click', function() {
+        restartButton.addEventListener('click', () => {
             console.log("Restart button clicked");
             
-            // Remove game over screen
-            if (gameOverDiv && gameOverDiv.parentNode) {
-                document.body.removeChild(gameOverDiv);
-            }
+            // Hide game over screen
+            gameOverDiv.style.display = 'none';
             
             // Get high score before disposing everything
-            const highScore = game.scoreManager.getHighScore();
+            const highScore = this.scoreManager.getHighScore();
             
             // Remember if music was playing before restart
             const wasMusicPlaying = audioManager.musicPlaying;
             
             // Clean up the current game instance
-            game.dispose();
+            this.dispose();
             
             // Create and start a completely new game with the saved high score
             game = new SuikaGame();
