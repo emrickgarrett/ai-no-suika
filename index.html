@@ -6,16 +6,22 @@
     <title>Ai-No-Suika Game</title>
     
     <!-- Social media sharing meta tags -->
-    <meta property="og:title" content="Ai-No-Suika Game - Try to beat my score!" />
-    <meta property="og:description" content="Stack fruits to create bigger fruits and get the highest score in this addictive Suika Game!" />
-    <meta property="og:image" content="https://raw.githubusercontent.com/EmrickGarrett/ai-no-suika/main/preview.png" />
-    <meta property="og:url" content="https://emrickgarrett.github.io/ai-no-suika/" />
-    <meta property="og:type" content="website" />
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Ai-No-Suika Game - Try to beat my score!" />
-    <meta name="twitter:description" content="Stack fruits to create bigger fruits and get the highest score in this addictive Suika Game!" />
-    <meta name="twitter:image" content="https://raw.githubusercontent.com/EmrickGarrett/ai-no-suika/main/preview.png" />
+    <meta property="og:title" content="Ai-No-Suika Game">
+    <meta property="og:description" content="Stack fruits to get the highest score possible in this addictive physics-based game!">
+    <meta property="og:image" content="https://emrickgarrett.github.io/ai-no-suika/main/preview.png">
+    <meta property="og:url" content="https://emrickgarrett.github.io/ai-no-suika/">
+    <meta property="og:type" content="website">
+    
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Ai-No-Suika Game">
+    <meta name="twitter:description" content="Stack fruits to get the highest score possible in this addictive physics-based game!">
+    <meta name="twitter:image" content="https://emrickgarrett.github.io/ai-no-suika/main/preview.png">
     <meta name="twitter:site" content="@YourGameHandle">
+    
+    <!-- Add cache control headers -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     
     <!-- Import maps for module resolution -->
     <script type="importmap">
@@ -136,9 +142,29 @@
     </div>
     <a target="_blank" href="https://jam.pieter.com" class="jam-link">🕹️ Vibe Jam 2025</a>
     
-    <!-- Hidden canvas for generating share images -->
-    <canvas id="share-canvas" style="display: none; position: absolute; left: -9999px;" width="1200" height="630"></canvas>
-    
-    <script type="module" src="./main.js"></script>
+    <!-- Hidden canvas for generating social share images -->
+    <canvas id="share-canvas" width="1200" height="630" style="display: none;"></canvas>
+
+    <!-- JavaScript imports with cache-busting timestamp -->
+    <script>
+        // Add this cache-busting function
+        function loadScript(url) {
+            // Add a timestamp to the URL to prevent caching
+            const timestamp = new Date().getTime();
+            const script = document.createElement('script');
+            script.src = `${url}?v=${timestamp}`;
+            script.type = 'module';
+            document.body.appendChild(script);
+            return script;
+        }
+        
+        // Use the function to load all scripts with cache busting
+        window.addEventListener('DOMContentLoaded', (event) => {
+            loadScript('./constants.js');
+            loadScript('./audioManager.js');
+            loadScript('./socialShare.js');
+            loadScript('./main.js');
+        });
+    </script>
 </body>
 </html>
