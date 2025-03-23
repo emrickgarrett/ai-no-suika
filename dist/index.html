@@ -6,19 +6,31 @@
     <title>Ai-No-Suika Game</title>
     
     <!-- Social media sharing meta tags -->
-    <meta property="og:title" content="Ai-No-Suika Game - Try to beat my score!" />
-    <meta property="og:description" content="Stack fruits to create bigger fruits and get the highest score in this addictive Suika Game!" />
-    <meta property="og:image" content="https://raw.githubusercontent.com/EmrickGarrett/ai-no-suika/main/preview.png" />
-    <meta property="og:url" content="https://emrickgarrett.github.io/ai-no-suika/" />
-    <meta property="og:type" content="website" />
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Ai-No-Suika Game - Try to beat my score!" />
-    <meta name="twitter:description" content="Stack fruits to create bigger fruits and get the highest score in this addictive Suika Game!" />
-    <meta name="twitter:image" content="https://raw.githubusercontent.com/EmrickGarrett/ai-no-suika/main/preview.png" />
+    <meta property="og:title" content="Ai-No-Suika Game">
+    <meta property="og:description" content="Stack fruits to get the highest score possible in this addictive physics-based game!">
+    <meta property="og:image" content="https://emrickgarrett.github.io/ai-no-suika/main/preview.png">
+    <meta property="og:url" content="https://emrickgarrett.github.io/ai-no-suika/">
+    <meta property="og:type" content="website">
+    
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Ai-No-Suika Game">
+    <meta name="twitter:description" content="Stack fruits to get the highest score possible in this addictive physics-based game!">
+    <meta name="twitter:image" content="https://emrickgarrett.github.io/ai-no-suika/main/preview.png">
     <meta name="twitter:site" content="@YourGameHandle">
+    
+    <!-- Add cache control headers -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     
     <!-- Import maps for module resolution -->
 
+
+    <!-- Add a cache-busting version parameter -->
+    <script>
+        // Simple cache-busting technique
+        window.cacheBuster = new Date().getTime();
+    </script>
     <style>
         body {
             margin: 0;
@@ -115,19 +127,12 @@
     <script type="importmap">
     {
       "imports": {
-        "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
-        "three/examples/jsm/controls/OrbitControls.js": "https://unpkg.com/three@0.160.0/examples/jsm/controls/OrbitControls.js",
-        "cannon-es": "https://unpkg.com/cannon-es@0.20.0/dist/cannon-es.js",
-        "./constants.js": "./constants.js",
-        "./audioManager.js": "./audioManager.js",
-        "./fruitFactory.js": "./fruitFactory.js",
-        "./textureManager.js": "./textureManager.js",
-        "./scoreManager.js": "./scoreManager.js",
-        "./socialShare.js": "./socialShare.js"
+        "three": "https://unpkg.com/three@0.162.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.162.0/examples/jsm/"
       }
     }
     </script>
-  <script type="module" crossorigin src="./assets/index-2R-W2wlh.js"></script>
+  <script type="module" crossorigin src="./assets/index-DO96CSIN.js"></script>
 </head>
 <body>
     <div id="score">Score: 0</div>
@@ -138,8 +143,9 @@
     </div>
     <a target="_blank" href="https://jam.pieter.com" class="jam-link">🕹️ Vibe Jam 2025</a>
     
-    <!-- Hidden canvas for generating share images -->
-    <canvas id="share-canvas" style="display: none; position: absolute; left: -9999px;" width="1200" height="630"></canvas>
-    
+    <!-- Hidden canvas for generating social share images -->
+    <canvas id="share-canvas" width="1200" height="630" style="display: none;"></canvas>
+
+    <!-- JavaScript imports with cache-busting -->
 </body>
 </html>

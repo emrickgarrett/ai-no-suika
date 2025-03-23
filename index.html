@@ -27,17 +27,16 @@
     <script type="importmap">
     {
       "imports": {
-        "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
-        "three/examples/jsm/controls/OrbitControls.js": "https://unpkg.com/three@0.160.0/examples/jsm/controls/OrbitControls.js",
-        "cannon-es": "https://unpkg.com/cannon-es@0.20.0/dist/cannon-es.js",
-        "./constants.js": "./constants.js",
-        "./audioManager.js": "./audioManager.js",
-        "./fruitFactory.js": "./fruitFactory.js",
-        "./textureManager.js": "./textureManager.js",
-        "./scoreManager.js": "./scoreManager.js",
-        "./socialShare.js": "./socialShare.js"
+        "three": "https://unpkg.com/three@0.162.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.162.0/examples/jsm/"
       }
     }
+    </script>
+
+    <!-- Add a cache-busting version parameter -->
+    <script>
+        // Simple cache-busting technique
+        window.cacheBuster = new Date().getTime();
     </script>
     <style>
         body {
@@ -145,26 +144,10 @@
     <!-- Hidden canvas for generating social share images -->
     <canvas id="share-canvas" width="1200" height="630" style="display: none;"></canvas>
 
-    <!-- JavaScript imports with cache-busting timestamp -->
-    <script>
-        // Add this cache-busting function
-        function loadScript(url) {
-            // Add a timestamp to the URL to prevent caching
-            const timestamp = new Date().getTime();
-            const script = document.createElement('script');
-            script.src = `${url}?v=${timestamp}`;
-            script.type = 'module';
-            document.body.appendChild(script);
-            return script;
-        }
-        
-        // Use the function to load all scripts with cache busting
-        window.addEventListener('DOMContentLoaded', (event) => {
-            loadScript('./constants.js');
-            loadScript('./audioManager.js');
-            loadScript('./socialShare.js');
-            loadScript('./main.js');
-        });
-    </script>
+    <!-- JavaScript imports with cache-busting -->
+    <script type="module" src="./constants.js?v=20250323"></script>
+    <script type="module" src="./audioManager.js?v=20250323"></script>
+    <script type="module" src="./socialShare.js?v=20250323"></script>
+    <script type="module" src="./main.js?v=20250323"></script>
 </body>
 </html>
