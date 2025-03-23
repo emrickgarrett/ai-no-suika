@@ -389,6 +389,114 @@ export class FruitFactory {
                 });
                 return new THREE.Mesh(geometry, material);
             }
+
+            case 'watermelon': {
+                const group = new THREE.Group();
+                
+                // Create slightly squashed spheroid for watermelon shape
+                const watermelonGeometry = new THREE.SphereGeometry(type.radius, 32, 32);
+                
+                // Modify vertices to create a slightly squashed shape
+                const positions = watermelonGeometry.attributes.position.array;
+                for (let i = 0; i < positions.length; i += 3) {
+                    // Slightly flatten the top and bottom
+                    const y = positions[i + 1];
+                    if (Math.abs(y / type.radius) > 0.75) {
+                        positions[i + 1] *= 0.85; // Flatten top and bottom
+                    }
+                    
+                    // Add subtle bumps for texture
+                    const x = positions[i];
+                    const z = positions[i + 2];
+                    const angle = Math.atan2(z, x);
+                    const radius = Math.sqrt(x*x + z*z);
+                    
+                    // Create stripes pattern
+                    const stripeFrequency = 8;
+                    const stripeWidth = 0.3;
+                    const stripePattern = Math.abs(Math.sin(angle * stripeFrequency));
+                    
+                    // Add small bumps based on the stripe pattern
+                    if (stripePattern > stripeWidth) {
+                        const bump = 0.02 * Math.sin(radius * 10);
+                        positions[i] += x * bump;
+                        positions[i + 2] += z * bump;
+                    }
+                }
+                
+                watermelonGeometry.attributes.position.needsUpdate = true;
+                watermelonGeometry.computeVertexNormals();
+                
+                // Create stripe pattern with custom shader material
+                const watermelonMaterial = new THREE.ShaderMaterial({
+                    uniforms: {
+                        baseColor: { value: new THREE.Color(type.color) },
+                        stripeColor: { value: new THREE.Color(type.stripeColor) },
+                        glossiness: { value: 0.8 }
+                    },
+                    vertexShader: `
+                        varying vec2 vUv;
+                        varying vec3 vNormal;
+                        varying vec3 vPosition;
+                        
+                        void main() {
+                            vUv = uv;
+                            vNormal = normalize(normalMatrix * normal);
+                            vPosition = position;
+                            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                        }
+                    `,
+                    fragmentShader: `
+                        uniform vec3 baseColor;
+                        uniform vec3 stripeColor;
+                        uniform float glossiness;
+                        
+                        varying vec2 vUv;
+                        varying vec3 vNormal;
+                        varying vec3 vPosition;
+                        
+                        void main() {
+                            // Calculate angle for stripe pattern
+                            vec3 normPos = normalize(vPosition);
+                            float angle = atan(normPos.z, normPos.x);
+                            
+                            // Create stripe pattern
+                            float stripeFrequency = 8.0;
+                            float stripePattern = abs(sin(angle * stripeFrequency));
+                            float stripeCutoff = 0.3;
+                            
+                            // Choose color based on stripe pattern
+                            vec3 color = (stripePattern > stripeCutoff) ? baseColor : stripeColor;
+                            
+                            // Add lighting effects
+                            float lighting = max(dot(vNormal, vec3(0.0, 1.0, 0.5)), 0.0);
+                            float specular = pow(lighting, 20.0) * glossiness;
+                            
+                            // Apply colors and lighting
+                            gl_FragColor = vec4(color * (0.5 + 0.5 * lighting) + vec3(specular), 1.0);
+                        }
+                    `
+                });
+                
+                // Alternative approach using standard materials with texture if shaders don't work well
+                const standardMaterial = new THREE.MeshStandardMaterial({
+                    color: type.color,
+                    roughness: 0.3,
+                    metalness: 0.0,
+                    map: this.textureManager.watermelonTexture,
+                    bumpMap: this.textureManager.watermelonTexture,
+                    bumpScale: 0.03,
+                    envMapIntensity: 1.0
+                });
+                
+                // Use standard material as fallback if shader creation fails
+                const watermelon = new THREE.Mesh(watermelonGeometry, 
+                    this.textureManager.watermelonTexture ? standardMaterial : watermelonMaterial);
+                
+                group.add(watermelon);
+                
+                return group;
+            }
             
             case 'orange': {
                 const group = new THREE.Group();
