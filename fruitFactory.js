@@ -312,15 +312,15 @@ export class FruitFactory {
                 const peachGeometry = new THREE.SphereGeometry(type.radius, 32, 32);
                 
                 // Modify vertices to create a subtle cleft
-                const positions = peachGeometry.attributes.position.array;
-                for (let i = 0; i < positions.length; i += 3) {
-                    const x = positions[i];
-                    const y = positions[i + 1]; 
-                    const z = positions[i + 2];
+                const peachPositions = peachGeometry.attributes.position.array;
+                for (let i = 0; i < peachPositions.length; i += 3) {
+                    const x = peachPositions[i];
+                    const y = peachPositions[i + 1]; 
+                    const z = peachPositions[i + 2];
                     
                     // Make peach slightly wider than tall
-                    positions[i] *= 1.05;     // x - wider
-                    positions[i + 2] *= 1.05; // z - wider
+                    peachPositions[i] *= 1.05;     // x - wider
+                    peachPositions[i + 2] *= 1.05; // z - wider
                     
                     // Create a very subtle cleft - move to front (positive z)
                     if (z > 0 && Math.abs(x) < type.radius * 0.2) {
@@ -331,7 +331,7 @@ export class FruitFactory {
                         const depthEffect = cleftDepth * cleftFactor * Math.max(0, yFactor);
                         
                         // Push in the z direction slightly to create cleft
-                        positions[i + 2] *= (1.0 - depthEffect);
+                        peachPositions[i + 2] *= (1.0 - depthEffect);
                     }
                 }
                 
@@ -553,11 +553,11 @@ export class FruitFactory {
                 const orangeGeometry = new THREE.SphereGeometry(type.radius, 32, 32);
                 
                 // Add subtle deformations to make the orange less perfectly round
-                const positions = orangeGeometry.attributes.position.array;
-                for (let i = 0; i < positions.length; i += 3) {
-                    const x = positions[i];
-                    const y = positions[i + 1];
-                    const z = positions[i + 2];
+                const orangePositions = orangeGeometry.attributes.position.array;
+                for (let i = 0; i < orangePositions.length; i += 3) {
+                    const x = orangePositions[i];
+                    const y = orangePositions[i + 1];
+                    const z = orangePositions[i + 2];
                     
                     // Calculate distance from center
                     const distance = Math.sqrt(x*x + y*y + z*z);
@@ -567,13 +567,13 @@ export class FruitFactory {
                     const bumpFactor = 0.02 * Math.sin(angle * 10) * Math.sin(y * 12);
                     
                     // Apply bumps
-                    positions[i] += positions[i] * bumpFactor;
-                    positions[i + 1] += positions[i + 1] * bumpFactor;
-                    positions[i + 2] += positions[i + 2] * bumpFactor;
+                    orangePositions[i] += orangePositions[i] * bumpFactor;
+                    orangePositions[i + 1] += orangePositions[i + 1] * bumpFactor;
+                    orangePositions[i + 2] += orangePositions[i + 2] * bumpFactor;
                     
                     // Add a slight "squashed" effect on top and bottom (pole flattening)
                     if (Math.abs(y / type.radius) > 0.8) {
-                        positions[i + 1] *= 0.95;
+                        orangePositions[i + 1] *= 0.95;
                     }
                 }
                 
@@ -633,12 +633,40 @@ export class FruitFactory {
             case 'grape': {
                 // Simple sphere with improved material properties
                 const geometry = new THREE.SphereGeometry(type.radius, 32, 32);
+                const useAltTexture = Math.random() < 0.001; // 1/1000 chance for special face
+                
+                // Create UV coordinates for front-facing texture
+                if (useAltTexture) {
+                    const uvAttribute = geometry.attributes.uv;
+                    const posAttribute = geometry.attributes.position;
+                    
+                    // Modify UVs to center the face on the front of the sphere
+                    for (let i = 0; i < uvAttribute.count; i++) {
+                        const x = posAttribute.getX(i);
+                        const y = posAttribute.getY(i);
+                        const z = posAttribute.getZ(i);
+                        
+                        // Convert from Cartesian to spherical coordinates
+                        const theta = Math.atan2(z, x);
+                        const phi = Math.acos(y / type.radius);
+                        
+                        // Map spherical coordinates to UV
+                        // Shift the texture so the face is centered on the front (z-axis)
+                        const u = 0.5 + Math.atan2(x, z) / (2 * Math.PI);
+                        const v = 1 - phi / Math.PI;
+                        
+                        uvAttribute.setXY(i, u, v);
+                    }
+                    uvAttribute.needsUpdate = true;
+                }
+                
                 const material = new THREE.MeshPhongMaterial({
                     color: type.color,
                     shininess: 120, // High shininess for grape's waxy appearance
-                    specular: 0x8866AA,
-                    map: this.textureManager.grapeTexture,
-                    bumpMap: this.textureManager.grapeTexture,
+                    transparent: false,
+                    opacity: 1,
+                    map: useAltTexture ? this.textureManager.grapeAltTexture : this.textureManager.grapeTexture,
+                    bumpMap: useAltTexture ? this.textureManager.grapeAltTexture : this.textureManager.grapeTexture,
                     bumpScale: 0.01
                 });
                 

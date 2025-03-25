@@ -10,6 +10,7 @@ export class TextureManager {
         this.strawberryTexture = null;
         this.watermelonTexture = null;
         this.grapeTexture = null;
+        this.grapeAltTexture = null; // New alternate grape texture with face
         this.appleTexture = null;
         this.pearTexture = null;
         this.peachTexture = null;
@@ -293,29 +294,109 @@ export class TextureManager {
             grapeTextureSize/2, grapeTextureSize/2, 0,
             grapeTextureSize/2, grapeTextureSize/2, grapeTextureSize/2
         );
-        baseGrape.addColorStop(0, '#9F45FF'); // Brighter purple in center
+        baseGrape.addColorStop(0, '#9040F0');
         baseGrape.addColorStop(0.5, '#8030E0'); // Standard grape purple
-        baseGrape.addColorStop(1, '#6020B0'); // Darker purple at edges
-        
+        baseGrape.addColorStop(1, '#6020C0');
+
         grapeCtx.fillStyle = baseGrape;
         grapeCtx.fillRect(0, 0, grapeTextureSize, grapeTextureSize);
-        
-        // Add subtle noise texture for organic look
+
+        // Add noise to the texture
         const grapeImageData = grapeCtx.getImageData(0, 0, grapeTextureSize, grapeTextureSize);
         const grapeData = grapeImageData.data;
-        
+
         for (let i = 0; i < grapeData.length; i += 4) {
-            const noise = Math.random() * 10 - 5;
+            const noise = (Math.random() - 0.5) * 30;
             grapeData[i] = Math.max(0, Math.min(255, grapeData[i] + noise));     // R
             grapeData[i + 1] = Math.max(0, Math.min(255, grapeData[i + 1] + noise)); // G
             grapeData[i + 2] = Math.max(0, Math.min(255, grapeData[i + 2] + noise)); // B
         }
-        
+
         grapeCtx.putImageData(grapeImageData, 0, 0);
-        
+
         this.grapeTexture = new THREE.CanvasTexture(grapeCanvas);
         this.grapeTexture.wrapS = THREE.RepeatWrapping;
         this.grapeTexture.wrapT = THREE.RepeatWrapping;
+
+        // Create alternate grape texture with face
+        const altGrapeCanvas = document.createElement('canvas');
+        altGrapeCanvas.width = grapeTextureSize;
+        altGrapeCanvas.height = grapeTextureSize;
+        const altGrapeCtx = altGrapeCanvas.getContext('2d');
+
+        // Copy base grape texture
+        altGrapeCtx.drawImage(grapeCanvas, 0, 0);
+
+        // Scale down the face features - make them much smaller relative to grape size
+        const centerX = grapeTextureSize * 0.5;
+        const centerY = grapeTextureSize * 0.5; // Center vertically
+        
+        // Eyes - moved slightly higher
+        const eyeSize = grapeTextureSize * 0.035;
+        const eyeSpacing = grapeTextureSize * 0.08;
+        const eyeY = centerY - grapeTextureSize * 0.03; // Moved eyes up
+        const leftEyeX = centerX - eyeSpacing;
+        const rightEyeX = centerX + eyeSpacing;
+        
+        // Draw eyes with white highlights
+        altGrapeCtx.fillStyle = 'black';
+        altGrapeCtx.beginPath();
+        altGrapeCtx.arc(leftEyeX, eyeY, eyeSize, 0, Math.PI * 2);
+        altGrapeCtx.arc(rightEyeX, eyeY, eyeSize, 0, Math.PI * 2);
+        altGrapeCtx.fill();
+
+        // White highlight in eyes
+        altGrapeCtx.fillStyle = 'white';
+        altGrapeCtx.beginPath();
+        altGrapeCtx.arc(leftEyeX - eyeSize * 0.2, eyeY - eyeSize * 0.2, eyeSize * 0.5, 0, Math.PI * 2);
+        altGrapeCtx.arc(rightEyeX - eyeSize * 0.2, eyeY - eyeSize * 0.2, eyeSize * 0.5, 0, Math.PI * 2);
+        altGrapeCtx.fill();
+
+        // Nose - centered between eyes and mouth
+        altGrapeCtx.fillStyle = 'rgba(0,0,0,0.8)';
+        const noseWidth = eyeSize * 0.8;
+        const noseHeight = eyeSize * 1.2;
+        const noseY = centerY + grapeTextureSize * 0.01; // Adjusted nose position
+        altGrapeCtx.beginPath();
+        altGrapeCtx.ellipse(centerX, noseY, noseWidth, noseHeight, 0, 0, Math.PI * 2);
+        altGrapeCtx.fill();
+
+        // Subtle smile - moved lower
+        altGrapeCtx.strokeStyle = 'rgba(0,0,0,0.6)';
+        altGrapeCtx.lineWidth = eyeSize * 0.3;
+        altGrapeCtx.lineCap = 'round';
+        
+        // Draw subtle curves on each side of the face
+        const smileY = centerY + grapeTextureSize * 0.06; // Moved smile down
+        const curveLength = grapeTextureSize * 0.04;
+        
+        // Left smile curve
+        altGrapeCtx.beginPath();
+        altGrapeCtx.moveTo(centerX - curveLength * 1.2, smileY);
+        altGrapeCtx.quadraticCurveTo(
+            centerX - curveLength * 0.6, 
+            smileY + curveLength * 0.3,
+            centerX - curveLength * 0.3, 
+            smileY
+        );
+        altGrapeCtx.stroke();
+        
+        // Right smile curve
+        altGrapeCtx.beginPath();
+        altGrapeCtx.moveTo(centerX + curveLength * 1.2, smileY);
+        altGrapeCtx.quadraticCurveTo(
+            centerX + curveLength * 0.6,
+            smileY + curveLength * 0.3,
+            centerX + curveLength * 0.3,
+            smileY
+        );
+        altGrapeCtx.stroke();
+
+        this.grapeAltTexture = new THREE.CanvasTexture(altGrapeCanvas);
+        this.grapeAltTexture.center.set(0.5, 0.5);
+        this.grapeAltTexture.rotation = Math.PI; // Rotate texture 180 degrees to face front
+        this.grapeAltTexture.wrapS = THREE.RepeatWrapping;
+        this.grapeAltTexture.wrapT = THREE.RepeatWrapping;
 
         // Create peach texture with redder colors and subtle fuzz
         const peachTextureSize = 512;
