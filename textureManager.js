@@ -189,30 +189,6 @@ export class TextureManager {
         
         orangeCtx.putImageData(orangeImageData, 0, 0);
         
-        // Create dimpled pattern - more realistic
-        for (let i = 0; i < 1500; i++) {
-            const x = Math.random() * orangeTextureSize;
-            const y = Math.random() * orangeTextureSize;
-            const radius = 1 + Math.random() * 3;
-            
-            // Main dimple
-            orangeCtx.beginPath();
-            orangeCtx.arc(x, y, radius, 0, Math.PI * 2);
-            
-            // Create realistic dimple effect with light and shadow
-            const dimpleGradient = orangeCtx.createRadialGradient(
-                x, y, 0,
-                x, y, radius
-            );
-            
-            dimpleGradient.addColorStop(0, 'rgba(255, 180, 50, 0.4)'); // Lighter center
-            dimpleGradient.addColorStop(0.5, 'rgba(230, 115, 0, 0.4)'); // Medium orange
-            dimpleGradient.addColorStop(1, 'rgba(180, 90, 0, 0.4)'); // Darker edge
-            
-            orangeCtx.fillStyle = dimpleGradient;
-            orangeCtx.fill();
-        }
-        
         this.orangeTexture = new THREE.CanvasTexture(orangeCanvas);
         this.orangeTexture.wrapS = THREE.RepeatWrapping;
         this.orangeTexture.wrapT = THREE.RepeatWrapping;
@@ -250,55 +226,6 @@ export class TextureManager {
         }
         
         strawberryCtx.putImageData(imageData, 0, 0);
-        
-        // Add surface texture to simulate strawberry skin between seeds
-        for (let i = 0; i < 2000; i++) {
-            const x = Math.random() * strawberryTextureSize;
-            const y = Math.random() * strawberryTextureSize;
-            const size = 0.5 + Math.random() * 1.5;
-            
-            strawberryCtx.beginPath();
-            strawberryCtx.arc(x, y, size, 0, Math.PI * 2);
-            // Vary the alpha for subtlety
-            const alpha = 0.05 + Math.random() * 0.1;
-            strawberryCtx.fillStyle = `rgba(0, 0, 0, ${alpha})`;
-            strawberryCtx.fill();
-        }
-        
-        // Add more detailed and realistic seeds
-        for (let i = 0; i < 1000; i++) {
-            const x = Math.random() * strawberryTextureSize;
-            const y = Math.random() * strawberryTextureSize;
-            const seedSize = 1.2 + Math.random() * 1.8;
-            const angle = Math.random() * Math.PI * 2;
-            
-            // Create seed
-            strawberryCtx.beginPath();
-            strawberryCtx.ellipse(x, y, seedSize * 1.2, seedSize * 0.8, angle, 0, Math.PI * 2);
-            
-            // Seed color varies from pale yellow to light yellow-white
-            const yellowness = 210 + Math.random() * 40;
-            strawberryCtx.fillStyle = `rgba(${yellowness}, ${yellowness-30}, 200, ${0.8 + Math.random() * 0.2})`;
-            strawberryCtx.fill();
-            
-            // Add slight highlight to each seed
-            strawberryCtx.beginPath();
-            strawberryCtx.ellipse(
-                x - seedSize*0.3, 
-                y - seedSize*0.2, 
-                seedSize * 0.5, 
-                seedSize * 0.3, 
-                angle, 0, Math.PI * 2
-            );
-            strawberryCtx.fillStyle = 'rgba(255, 255, 255, 0.3)';
-            strawberryCtx.fill();
-            
-            // Add slight shadow to seeds for depth
-            strawberryCtx.beginPath();
-            strawberryCtx.ellipse(x + 0.7, y + 0.7, seedSize * 1.2, seedSize * 0.8, angle, 0, Math.PI * 2);
-            strawberryCtx.fillStyle = 'rgba(120, 0, 0, 0.2)';
-            strawberryCtx.fill();
-        }
         
         this.strawberryTexture = new THREE.CanvasTexture(strawberryCanvas);
         this.strawberryTexture.wrapS = THREE.RepeatWrapping;
@@ -342,39 +269,12 @@ export class TextureManager {
                     // Light green stripe
                     watermelonCtx.fillStyle = '#32CD32'; // Lime green
                     watermelonCtx.fillRect(x, y, 1, 1);
-                    
-                    // Add mottled texture to light areas
-                    if (Math.random() > 0.85) {
-                        watermelonCtx.fillStyle = '#228B22'; // Forest green
-                        watermelonCtx.fillRect(x, y, 1, 1);
-                    }
                 } else {
-                    // Add mottled texture to dark areas
-                    if (Math.random() > 0.85) {
-                        watermelonCtx.fillStyle = '#004200'; // Very dark green
-                        watermelonCtx.fillRect(x, y, 1, 1);
-                    }
+                    // Dark green stripe
+                    watermelonCtx.fillStyle = '#004200'; // Very dark green
+                    watermelonCtx.fillRect(x, y, 1, 1);
                 }
             }
-        }
-        
-        // Add highlight reflections like real watermelons have
-        for (let i = 0; i < 5; i++) {
-            const x = watermelonTextureSize * (0.3 + Math.random() * 0.4);
-            const y = watermelonTextureSize * (0.3 + Math.random() * 0.4);
-            const radius = 10 + Math.random() * 30;
-            
-            const highlightGradient = watermelonCtx.createRadialGradient(
-                x, y, 0,
-                x, y, radius
-            );
-            highlightGradient.addColorStop(0, 'rgba(255, 255, 255, 0.2)');
-            highlightGradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
-            
-            watermelonCtx.fillStyle = highlightGradient;
-            watermelonCtx.beginPath();
-            watermelonCtx.arc(x, y, radius, 0, Math.PI * 2);
-            watermelonCtx.fill();
         }
         
         this.watermelonTexture = new THREE.CanvasTexture(watermelonCanvas);
@@ -413,101 +313,53 @@ export class TextureManager {
         
         grapeCtx.putImageData(grapeImageData, 0, 0);
         
-        // Add bloom/reflections on the grape surface
-        for (let i = 0; i < 80; i++) {
-            const x = Math.random() * grapeTextureSize;
-            const y = Math.random() * grapeTextureSize;
-            const radius = 15 + Math.random() * 25;
-            
-            const bloomGradient = grapeCtx.createRadialGradient(x, y, 0, x, y, radius);
-            bloomGradient.addColorStop(0, 'rgba(255, 255, 255, 0.45)');
-            bloomGradient.addColorStop(0.5, 'rgba(255, 255, 255, 0.15)');
-            bloomGradient.addColorStop(1, 'rgba(140, 80, 200, 0)');
-            
-            grapeCtx.fillStyle = bloomGradient;
-            grapeCtx.beginPath();
-            grapeCtx.arc(x, y, radius, 0, Math.PI * 2);
-            grapeCtx.fill();
-        }
-        
         this.grapeTexture = new THREE.CanvasTexture(grapeCanvas);
         this.grapeTexture.wrapS = THREE.RepeatWrapping;
         this.grapeTexture.wrapT = THREE.RepeatWrapping;
 
-        // SUPER VIBRANT peach texture with extremely strong coloring
+        // Create peach texture with redder colors and subtle fuzz
         const peachTextureSize = 512;
         const peachCanvas = document.createElement('canvas');
         peachCanvas.width = peachTextureSize;
         peachCanvas.height = peachTextureSize;
         const peachCtx = peachCanvas.getContext('2d');
-        
-        // Start with a solid, extremely vibrant base
-        peachCtx.fillStyle = '#FF7722'; // Very strong orange base
+
+        // Fill with deep orange-red base
+        peachCtx.fillStyle = '#FF3300';  // Deeper orange-red base
         peachCtx.fillRect(0, 0, peachTextureSize, peachTextureSize);
-        
-        // Add a bright center
+
+        // Add rich gradient overlay
         const peachGradient = peachCtx.createRadialGradient(
-            peachTextureSize/2, peachTextureSize/2, 0,
-            peachTextureSize/2, peachTextureSize/2, peachTextureSize/1.5
+            peachTextureSize * 0.5, peachTextureSize * 0.5, 0,  // Center
+            peachTextureSize * 0.5, peachTextureSize * 0.5, peachTextureSize * 0.8
         );
-        peachGradient.addColorStop(0, '#FFAA33');  // Very bright center
-        peachGradient.addColorStop(0.5, '#FF8822'); // Strong mid orange
-        peachGradient.addColorStop(1, 'rgba(255, 80, 10, 0)'); // Fade to base color
-        
-        // Fill with gradient overlay
+        peachGradient.addColorStop(0, 'rgba(255, 99, 71, 0.95)');     // Tomato red
+        peachGradient.addColorStop(0.3, 'rgba(255, 69, 0, 0.9)');     // Red-orange
+        peachGradient.addColorStop(0.6, 'rgba(255, 45, 0, 0.85)');    // Deeper red-orange
+        peachGradient.addColorStop(1, 'rgba(215, 40, 0, 0.8)');       // Dark red-orange
+
         peachCtx.fillStyle = peachGradient;
         peachCtx.fillRect(0, 0, peachTextureSize, peachTextureSize);
-        
-        // Add darker edges for depth
-        const edgeGradient = peachCtx.createRadialGradient(
-            peachTextureSize/2, peachTextureSize/2, peachTextureSize/2 * 0.8,
-            peachTextureSize/2, peachTextureSize/2, peachTextureSize/2
-        );
-        edgeGradient.addColorStop(0, 'rgba(200, 50, 0, 0)');  // Transparent at inner part
-        edgeGradient.addColorStop(1, 'rgba(200, 50, 0, 0.3)');  // Darker at edges
-        
-        peachCtx.fillStyle = edgeGradient;
-        peachCtx.fillRect(0, 0, peachTextureSize, peachTextureSize);
-        
-        // Add minimal noise for texture
-        const peachImageData = peachCtx.getImageData(0, 0, peachTextureSize, peachTextureSize);
-        const peachData = peachImageData.data;
-        
-        for (let i = 0; i < peachData.length; i += 4) {
-            const noise = Math.random() * 8 - 4; // Minimal noise to keep colors strong
-            peachData[i] = Math.max(0, Math.min(255, peachData[i] + noise));     // R
-            peachData[i + 1] = Math.max(0, Math.min(255, peachData[i + 1] + noise * 0.7)); // G
-            peachData[i + 2] = Math.max(0, Math.min(255, peachData[i + 2] + noise * 0.5)); // B
+
+        // Add very subtle fuzz texture
+        for (let i = 0; i < 3000; i++) {
+            const x = Math.random() * peachTextureSize;
+            const y = Math.random() * peachTextureSize;
+            const size = 0.2 + Math.random() * 0.4; // Very small dots
+
+            peachCtx.beginPath();
+            peachCtx.arc(x, y, size, 0, Math.PI * 2);
+            
+            // Extremely subtle fuzz with warmer red colors
+            const alpha = 0.01 + Math.random() * 0.02; // Very low alpha
+            if (Math.random() > 0.7) {
+                peachCtx.fillStyle = `rgba(255, 160, 120, ${alpha})`; // Light warm red fuzz
+            } else {
+                peachCtx.fillStyle = `rgba(255, 80, 40, ${alpha})`; // Red-orange fuzz
+            }
+            peachCtx.fill();
         }
-        
-        peachCtx.putImageData(peachImageData, 0, 0);
-        
-        // Add strong red blush to one side
-        const blushGradient = peachCtx.createRadialGradient(
-            peachTextureSize * 0.7, peachTextureSize * 0.5, 0,
-            peachTextureSize * 0.7, peachTextureSize * 0.5, peachTextureSize * 0.6
-        );
-        blushGradient.addColorStop(0, 'rgba(255, 30, 20, 0.85)'); // Very strong red
-        blushGradient.addColorStop(0.7, 'rgba(255, 30, 20, 0.3)');
-        blushGradient.addColorStop(1, 'rgba(255, 30, 20, 0)');
-        
-        peachCtx.fillStyle = blushGradient;
-        peachCtx.fillRect(0, 0, peachTextureSize, peachTextureSize);
-        
-        // Add a more visible cleft line
-        const cleftGradient = peachCtx.createLinearGradient(
-            peachTextureSize * 0.5, 0, 
-            peachTextureSize * 0.5, peachTextureSize
-        );
-        cleftGradient.addColorStop(0, 'rgba(180, 20, 0, 0.0)');
-        cleftGradient.addColorStop(0.3, 'rgba(180, 20, 0, 0.4)');
-        cleftGradient.addColorStop(0.5, 'rgba(180, 20, 0, 0.6)');
-        cleftGradient.addColorStop(0.7, 'rgba(180, 20, 0, 0.4)');
-        cleftGradient.addColorStop(1, 'rgba(180, 20, 0, 0.0)');
-        
-        peachCtx.fillStyle = cleftGradient;
-        peachCtx.fillRect(peachTextureSize * 0.48, 0, peachTextureSize * 0.04, peachTextureSize);
-        
+
         this.peachTexture = new THREE.CanvasTexture(peachCanvas);
         this.peachTexture.wrapS = THREE.RepeatWrapping;
         this.peachTexture.wrapT = THREE.RepeatWrapping;
@@ -604,36 +456,63 @@ export class TextureManager {
         this.pumpkinTexture.wrapS = THREE.RepeatWrapping;
         this.pumpkinTexture.wrapT = THREE.RepeatWrapping;
 
-        // Melon texture with net pattern
+        // Create melon (cantaloupe) texture with realistic netting pattern
         const melonTextureSize = 512;
         const melonCanvas = document.createElement('canvas');
         melonCanvas.width = melonTextureSize;
         melonCanvas.height = melonTextureSize;
         const melonCtx = melonCanvas.getContext('2d');
-        
-        // Base color
-        melonCtx.fillStyle = '#98FF98';
+
+        // Base color - pale yellow-green
+        const baseColor = '#F4E5C3';
+        melonCtx.fillStyle = baseColor;
         melonCtx.fillRect(0, 0, melonTextureSize, melonTextureSize);
-        
-        // Add net pattern
-        const netSize = 30;
-        melonCtx.strokeStyle = '#228B22';
-        melonCtx.lineWidth = 2;
-        
-        for (let y = 0; y < melonTextureSize; y += netSize) {
+
+        // Add subtle color variations for more natural look
+        const melonImageData = melonCtx.getImageData(0, 0, melonTextureSize, melonTextureSize);
+        const melonPixels = melonImageData.data;
+        for (let i = 0; i < melonPixels.length; i += 4) {
+            const noise = Math.random() * 15 - 7;
+            melonPixels[i] = Math.max(0, Math.min(255, melonPixels[i] + noise));     // R
+            melonPixels[i + 1] = Math.max(0, Math.min(255, melonPixels[i + 1] + noise * 0.8)); // G
+            melonPixels[i + 2] = Math.max(0, Math.min(255, melonPixels[i + 2] + noise * 0.6)); // B
+        }
+        melonCtx.putImageData(melonImageData, 0, 0);
+
+        // Create netting pattern
+        for (let i = 0; i < 2000; i++) {
+            const x = Math.random() * melonTextureSize;
+            const y = Math.random() * melonTextureSize;
+            const length = 10 + Math.random() * 20;
+            const angle = Math.random() * Math.PI * 2;
+            
+            // Draw raised netting lines
             melonCtx.beginPath();
-            melonCtx.moveTo(0, y);
-            melonCtx.lineTo(melonTextureSize, y);
+            melonCtx.moveTo(x, y);
+            melonCtx.lineTo(
+                x + Math.cos(angle) * length,
+                y + Math.sin(angle) * length
+            );
+            
+            // Vary line width for more natural look
+            melonCtx.lineWidth = 1 + Math.random() * 2;
+            
+            // Create raised effect with light and shadow
+            // Light edge
+            melonCtx.strokeStyle = 'rgba(255, 245, 220, 0.4)';
+            melonCtx.stroke();
+            
+            // Dark edge for depth
+            melonCtx.beginPath();
+            melonCtx.moveTo(x + 1, y + 1);
+            melonCtx.lineTo(
+                x + Math.cos(angle) * length + 1,
+                y + Math.sin(angle) * length + 1
+            );
+            melonCtx.strokeStyle = 'rgba(150, 140, 110, 0.4)';
             melonCtx.stroke();
         }
-        
-        for (let x = 0; x < melonTextureSize; x += netSize) {
-            melonCtx.beginPath();
-            melonCtx.moveTo(x, 0);
-            melonCtx.lineTo(x, melonTextureSize);
-            melonCtx.stroke();
-        }
-        
+
         this.melonTexture = new THREE.CanvasTexture(melonCanvas);
         this.melonTexture.wrapS = THREE.RepeatWrapping;
         this.melonTexture.wrapT = THREE.RepeatWrapping;
