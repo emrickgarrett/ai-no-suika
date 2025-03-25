@@ -32,6 +32,9 @@ import { FruitFactory } from './fruitFactory.js';
 // Import social share functionality
 import { socialShare } from './socialShare.js';
 
+// Import combo system
+import { ComboSystem } from './comboSystem.js';
+
 // Import fruit data
 const FRUITS = [
     { 
@@ -142,6 +145,7 @@ class SuikaGame {
         this.lastTimestamp = 0; // For delta time calculation
         this.recentFruits = [];
         this.maxRecentFruits = 3; // Keep track of last 3 fruits
+        this.comboSystem = null; // Will be initialized in init()
     }
     
     init() {
@@ -189,6 +193,9 @@ class SuikaGame {
         window.addEventListener('resize', () => this.onWindowResize());
         window.addEventListener('mousemove', (e) => this.onMouseMove(e));
         window.addEventListener('click', () => this.dropFruit());
+
+        // Initialize combo system
+        this.comboSystem = new ComboSystem(this.scene);
 
         // Start game loop
         this.animate(0);
@@ -728,65 +735,55 @@ class SuikaGame {
     }
 
     checkFruitCombinations() {
-        // Check for combinations
+        let combinations = 0;
+        const processedPairs = new Set();
+
         for (let i = 0; i < this.fruits.length; i++) {
+            const fruitA = this.fruits[i];
+            if (!fruitA.body || !fruitA.mesh) continue;
+
             for (let j = i + 1; j < this.fruits.length; j++) {
-                const fruitA = this.fruits[i];
                 const fruitB = this.fruits[j];
-                
-                // Skip if either fruit has been removed
-                if (!fruitA || !fruitB) continue;
-                
-                // Only check fruits of the same type
-                if (fruitA.type.name !== fruitB.type.name) continue;
-                
-                // Calculate distance between fruits
-                const distance = fruitA.body.position.distanceTo(fruitB.body.position);
-                
-                // If the fruits are close enough, combine them
-                if (distance < fruitA.type.radius + fruitB.type.radius) {
-                    // Get the next fruit type
-                    const nextFruitIndex = FRUITS.indexOf(fruitA.type) + 1;
-                    if (nextFruitIndex < FRUITS.length) {
-                        // Create a new fruit at the average position
-                        const position = new THREE.Vector3(
-                            (fruitA.body.position.x + fruitB.body.position.x) / 2,
-                            (fruitA.body.position.y + fruitB.body.position.y) / 2,
-                            0
-                        );
-                        
-                        // Calculate average velocity for the new fruit
-                        const avgVelocity = new CANNON.Vec3();
-                        avgVelocity.x = (fruitA.body.velocity.x + fruitB.body.velocity.x) / 2;
-                        avgVelocity.y = (fruitA.body.velocity.y + fruitB.body.velocity.y) / 2;
-                        avgVelocity.z = 0;
-                        
-                        // Remove the old fruits from scene and physics
-                        this.removeFruit(fruitA);
-                        this.removeFruit(fruitB);
-                        
-                        // Create the new combined fruit
-                        const newFruit = this.createFruit(FRUITS[nextFruitIndex], position);
-                        
-                        // Apply average velocity to the new fruit
-                        newFruit.body.velocity.copy(avgVelocity);
-                        
+                if (!fruitB.body || !fruitB.mesh) continue;
+
+                // Skip if this pair was already processed
+                const pairId = `${fruitA.id}-${fruitB.id}`;
+                if (processedPairs.has(pairId)) continue;
+
+                const distance = fruitA.mesh.position.distanceTo(fruitB.mesh.position);
+                if (distance < fruitA.type.radius + fruitB.type.radius && fruitA.type.name === fruitB.type.name) {
+                    // Mark this pair as processed
+                    processedPairs.add(pairId);
+
+                    // Calculate midpoint for new fruit
+                    const midpoint = new THREE.Vector3().addVectors(
+                        fruitA.mesh.position,
+                        fruitB.mesh.position
+                    ).multiplyScalar(0.5);
+
+                    // Remove old fruits
+                    this.removeFruit(fruitA);
+                    this.removeFruit(fruitB);
+
+                    // Create new fruit
+                    const nextType = FRUITS[FRUITS.findIndex(f => f.name === fruitA.type.name) + 1];
+                    if (nextType) {
+                        this.createFruit(nextType, midpoint);
+                        combinations++;
+
+                        // Update score
+                        this.scoreManager.addPoints(nextType.points);
+
+                        // Increment combo at the merge position with next fruit's color
+                        this.comboSystem.incrementCombo(midpoint, nextType.color);
+
                         // Play merge sound
-                        audioManager.playSound('merge');
-                        
-                        // Update the score
-                        this.scoreManager.addPoints(FRUITS[nextFruitIndex].points);
-                        
-                        // We've made a change, so restart the check from the beginning
-                        // But only if we still have fruits left
-                        if (this.fruits.length > 1) {
-                            return this.checkFruitCombinations();
-                        }
-                        return;
+                        audioManager.playMergeSound();
                     }
                 }
             }
         }
+        return combinations;
     }
 
     checkGameOver() {
@@ -1052,6 +1049,11 @@ class SuikaGame {
             document.body.removeChild(this.renderer.domElement);
         }
         
+        // Dispose of combo system
+        if (this.comboSystem) {
+            this.comboSystem.dispose();
+        }
+        
         // Clear arrays
         this.fruits = [];
         this.currentFruit = null;
@@ -1300,6 +1302,11 @@ class SuikaGame {
         this.checkGameOver();
         this.preventBottomClipping();
         this.stabilizeStackedFruits();
+
+        // Update combo system
+        if (this.comboSystem) {
+            this.comboSystem.update();
+        }
 
         // Render scene
         this.renderer.render(this.scene, this.camera);
