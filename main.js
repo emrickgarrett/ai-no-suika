@@ -7,6 +7,7 @@ import {
     CONTAINER_HEIGHT, 
     CONTAINER_DEPTH,
     COOLDOWN_DELAY,
+    DROP_DELAY,
     GAME_OVER_HEIGHT,
     PAPER_BAG_COLOR,
     PAPER_BAG_EMISSIVE,
@@ -1141,28 +1142,22 @@ class SuikaGame {
     }
 
     dropFruit() {
-        // Don't do anything if the game is over
+        // Don't drop if game is over
         if (this.gameOver) return;
         
-        // Don't drop if cooldown is active
+        // Don't drop if we're in cooldown
         if (this.dropCooldown) return;
         
+        // Check if enough time has passed since last drop
+        const now = Date.now();
+        if (now - this.lastDropTime < DROP_DELAY) {
+            return; // Too soon to drop again
+        }
+
         if (this.currentFruit) {
             // Set cooldown flag to prevent rapid drops
             this.dropCooldown = true;
-            
-            // Reset cooldown after 200ms
-            setTimeout(() => {
-                this.dropCooldown = false;
-            }, 200);
-            
-            // Safety check - ensure we have valid body object
-            if (!this.currentFruit.body) {
-                console.error("Current fruit body is null or undefined");
-                this.currentFruit = null;
-                setTimeout(() => this.spawnFruit(), 300);
-                return;
-            }
+            this.lastDropTime = now;
             
             try {
                 // Make the fruit dynamic so it can be affected by physics
@@ -1172,65 +1167,64 @@ class SuikaGame {
                 this.currentFruit.body.collisionFilterGroup = 1;
                 this.currentFruit.body.collisionFilterMask = 1;
                 
-                // Set initial angular damping (will gradually increase over time)
+                // Set initial angular damping
                 this.currentFruit.body.angularDamping = 0.1;
                 
-                // Record the time when the fruit was dropped for rotation damping
-                this.currentFruit.dropTime = Date.now();
+                // Record drop time
+                this.currentFruit.dropTime = now;
                 
                 // Make fruit fully opaque
                 if (this.currentFruit.mesh && typeof this.currentFruit.mesh.traverse === 'function') {
                     this.currentFruit.mesh.traverse((child) => {
-                        if (child.isMesh) {
-                            // Make mesh semi-transparent
-                            if (child.material) {
-                                child.material = child.material.clone();
-                                child.material.opacity = 1;
-                            }
+                        if (child.isMesh && child.material) {
+                            child.material = child.material.clone();
+                            child.material.opacity = 1;
                         }
                     });
-                } else if (this.currentFruit.mesh && this.currentFruit.mesh.material) {
-                    // Direct handling of material if traverse isn't available
-                    this.currentFruit.mesh.material.opacity = 1;
                 }
                 
-                // Center and stabilize the fruit for a clean drop
+                // Center and stabilize the fruit
                 this.currentFruit.body.position.z = 0;
-                if (this.currentFruit.mesh && this.currentFruit.mesh.position) {
+                if (this.currentFruit.mesh) {
                     this.currentFruit.mesh.position.z = 0;
                 }
                 
                 // Add initial velocity and spin
                 this.currentFruit.body.velocity.set(0, -1, 0);
-                this.currentFruit.body.angularVelocity.set(0, 0, (Math.random() - 0.5) * 10); // Random spin between -5 and 5 rad/s
+                this.currentFruit.body.angularVelocity.set(0, 0, (Math.random() - 0.5) * 10);
                 
                 // Allow rotation
                 this.currentFruit.body.fixedRotation = false;
                 
-                // Update mass properties if the method exists
+                // Update mass properties
                 if (typeof this.currentFruit.body.updateMassProperties === 'function') {
                     this.currentFruit.body.updateMassProperties();
                 }
                 
-                // Play drop sound with optional pitch shift
-                if (audioManager) {
-                    const pitchShift = 1 + (Math.random() * 0.2 - 0.1); // Random pitch between 0.9 and 1.1
-                    audioManager.playSound('drop', pitchShift);
-                }
+                // Play drop sound
+                audioManager.playDropSound();
                 
-                // Add to fruit array
+                // Add to fruits array
                 this.fruits.push(this.currentFruit);
                 this.currentFruit = null;
                 
-                // Spawn a new fruit after a delay
+                // Reset cooldown and spawn new fruit after delay
                 setTimeout(() => {
-                    this.spawnFruit();
-                }, 300);
+                    this.dropCooldown = false;
+                    if (!this.gameOver) {
+                        this.spawnFruit();
+                    }
+                }, COOLDOWN_DELAY);
+                
             } catch (error) {
                 console.error("Error dropping fruit:", error);
-                // Clean up and spawn new fruit
                 this.currentFruit = null;
-                setTimeout(() => this.spawnFruit(), 300);
+                setTimeout(() => {
+                    this.dropCooldown = false;
+                    if (!this.gameOver) {
+                        this.spawnFruit();
+                    }
+                }, COOLDOWN_DELAY);
             }
         }
     }
