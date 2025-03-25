@@ -1335,39 +1335,32 @@ let game;
 
 // Load DOM first then init the game
 document.addEventListener('DOMContentLoaded', () => {
-    // Add music start button that's more prominent
-    const musicStartButton = document.createElement('button');
-    musicStartButton.textContent = '🎵 Play!';
-    musicStartButton.style.position = 'absolute';
-    musicStartButton.style.top = '50%';
-    musicStartButton.style.left = '50%';
-    musicStartButton.style.transform = 'translate(-50%, -50%)';
-    musicStartButton.style.zIndex = '10000';
-    musicStartButton.style.padding = '20px 30px';
-    musicStartButton.style.fontSize = '24px';
-    musicStartButton.style.backgroundColor = '#4CAF50';
-    musicStartButton.style.color = 'white';
-    musicStartButton.style.border = 'none';
-    musicStartButton.style.borderRadius = '8px';
-    musicStartButton.style.cursor = 'pointer';
-    musicStartButton.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.3)';
+    // Show and initialize the UI elements
+    const scoreElement = document.getElementById('score');
+    const nextFruitElement = document.getElementById('next-fruit');
     
-    musicStartButton.addEventListener('click', () => {
-        // Initialize audio and start music
+    scoreElement.textContent = 'Score: 0';
+    scoreElement.style.display = 'block';
+    
+    nextFruitElement.style.display = 'block';
+
+    // Start the game immediately
+    game = new SuikaGame();
+    game.init();
+    game.animate(0);
+
+    // Start audio on first interaction
+    const startAudio = () => {
         audioManager.init();
         audioManager.playBackgroundMusic();
-        
-        // Remove the button
-        document.body.removeChild(musicStartButton);
-        
-        // Start the game
-        if (!game) {
-            game = new SuikaGame();
-            game.init();
-            game.animate(0);
-        }
-    });
-    
-    // Add the button to the document
-    document.body.appendChild(musicStartButton);
+        // Remove the event listeners once audio is started
+        document.removeEventListener('click', startAudio);
+        document.removeEventListener('touchstart', startAudio);
+        document.removeEventListener('keydown', startAudio);
+    };
+
+    // Add listeners for various interaction types
+    document.addEventListener('click', startAudio);
+    document.addEventListener('touchstart', startAudio);
+    document.addEventListener('keydown', startAudio);
 });
