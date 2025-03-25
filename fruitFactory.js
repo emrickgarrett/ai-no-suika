@@ -656,58 +656,13 @@ export class FruitFactory {
 
     createFruitBody(type, position = { x: 0, y: 0 }, isCurrent = false) {
         const radius = type.radius;
-        let shape;
-        let body;
-        
-        // Different collision shapes for different fruits
-        if (type && type.shape === 'watermelon' && type.radius > 1.5) {
-            // For watermelon, use a cylinder shape for better stacking
-            shape = new CANNON.Cylinder(radius, radius, radius * 1.5, 12);
-        } else if (type && type.shape === 'pumpkin') {
-            // For pumpkin, use a stable sphere with slightly reduced size
-            const sphereShape = new CANNON.Sphere(radius * 0.95);
-            
-            // Create the main body
-            body = new CANNON.Body({
-                mass: 1,
-                material: this.fruitMaterial,
-                position: new CANNON.Vec3(position.x, position.y, 0),
-                linearDamping: 0.2,
-                angularDamping: 0.4,
-                collisionFilterGroup: isCurrent ? 0 : 1,
-                collisionFilterMask: isCurrent ? 0 : 1,
-                fixedRotation: false,
-                angularFactor: new CANNON.Vec3(0.2, 0.2, 0.8)
-            });
-            
-            // Add the sphere shape
-            body.addShape(sphereShape);
-            
-            // Constrain movement to the x-y plane only
-            body.linearFactor = new CANNON.Vec3(1, 1, 0); // Only allow movement in x and y
-            body.angularFactor = new CANNON.Vec3(0, 0, 1); // Only allow rotation around z axis
-            
-            // Add body to the physics world
-            this.world.addBody(body);
-            
-            // Add event listener for collision
-            body.addEventListener('collide', (event) => {
-                // Play collision sound for non-current fruits only
-                if (!isCurrent && window.audioManager) {
-                    // Calculate relative velocity for volume
-                    const relativeVelocity = event.contact.getImpactVelocityAlongNormal();
-                    const volume = Math.min(Math.abs(relativeVelocity) / 10, 1);
-                    
-                    // Only play sounds for significant collisions
-                    if (volume > 0.1) {
-                        // Play with pitch variation
-                        const pitch = 0.8 + (Math.random() * 0.4); // Between 0.8 and 1.2
-                        window.audioManager.playSound('hit', pitch, volume);
-                    }
-                }
-            });
-            
-            return body;
+        let shape, body;
+
+        // Special handling for watermelon to match its oval shape
+        if (type.shape === 'watermelon') {
+            // Create an ellipsoid shape that matches the visual mesh
+            // Scale the radius by 1.02 on x and z to match the visual mesh
+            shape = new CANNON.Sphere(radius * 1.02);
         } else {
             // For other fruits, use a sphere shape
             shape = new CANNON.Sphere(radius);

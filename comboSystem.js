@@ -79,11 +79,11 @@ export class ComboSystem {
         // Update sprite
         this.comboText.material.map.needsUpdate = true;
         
-        // Keep x position of merge, but show at top of container
+        // Position at the center top of the container
         this.comboText.position.set(
-            position.x,
+            0, // Center x position
             CONTAINER_HEIGHT - 1, // Slightly below the top edge
-            position.z
+            0  // Center z position
         );
         this.comboText.visible = true;
     }
