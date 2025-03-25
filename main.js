@@ -35,6 +35,9 @@ import { socialShare } from './socialShare.js';
 // Import combo system
 import { ComboSystem } from './comboSystem.js';
 
+// Import leaderboard
+import { leaderboard } from './leaderboard.js';
+
 // Import fruit data
 const FRUITS = [
     { 
@@ -836,63 +839,52 @@ class SuikaGame {
         finalScoreDiv.style.margin = '10px 0';
         finalScoreDiv.style.color = 'white'; // Force white color
         
-        const highScoreDiv = document.createElement('div');
-        highScoreDiv.innerText = `High Score: ${this.scoreManager.getHighScore()}`;
-        highScoreDiv.style.fontSize = '20px';
-        highScoreDiv.style.marginBottom = '15px';
-        highScoreDiv.style.color = 'white'; // Force white color
+        // Add score to leaderboard and get position info
+        const scoreInfo = leaderboard.addScore(finalScore);
+        
+        // Create score status message
+        const scoreStatus = document.createElement('div');
+        if (scoreInfo.isHighScore) {
+            scoreStatus.innerText = '🏆 New High Score! 🏆';
+            scoreStatus.style.color = '#FFD700'; // Gold color
+        } else if (scoreInfo.isTopTen) {
+            scoreStatus.innerText = `🌟 Top ${scoreInfo.rank} Score! 🌟`;
+            scoreStatus.style.color = '#FFA500'; // Orange color
+        }
+        scoreStatus.style.fontSize = '20px';
+        scoreStatus.style.marginBottom = '10px';
         
         const restartButton = document.createElement('button');
         restartButton.id = 'restart-button';
         restartButton.innerText = 'Play Again';
-        restartButton.style.marginBottom = '20px';
-        restartButton.style.padding = '10px 20px';
+        restartButton.style.marginTop = '10px';
+        restartButton.style.marginBottom = '40px'; 
+        restartButton.style.padding = '12px 30px'; 
+        restartButton.style.fontSize = '18px';
+        restartButton.style.backgroundColor = '#4CAF50';
+        restartButton.style.color = 'white';
+        restartButton.style.border = 'none';
+        restartButton.style.borderRadius = '8px';
+        restartButton.style.cursor = 'pointer';
+        restartButton.style.transition = 'background-color 0.3s';
         
-        // Add social sharing buttons
-        console.log("Adding social buttons to game over screen");
-        const socialButtonsContainer = socialShare.createSocialButtons(finalScore);
-        socialButtonsContainer.style.display = 'flex';
-        socialButtonsContainer.style.flexWrap = 'wrap';
-        socialButtonsContainer.style.justifyContent = 'center';
-        socialButtonsContainer.style.width = '100%';
-        socialButtonsContainer.style.maxWidth = '400px';
-        socialButtonsContainer.style.margin = '10px auto';
-        
-        // Arrange elements
+        // Add elements to game over screen
         gameOverDiv.appendChild(gameOverTitle);
         gameOverDiv.appendChild(finalScoreDiv);
-        gameOverDiv.appendChild(highScoreDiv);
-        gameOverDiv.appendChild(restartButton);
-        gameOverDiv.appendChild(socialButtonsContainer);
+        if (scoreInfo.isHighScore || scoreInfo.isTopTen) {
+            gameOverDiv.appendChild(scoreStatus);
+        }
         
-        // Restart with a completely new game instance
+        // Add leaderboard
+        const leaderboardUI = leaderboard.createLeaderboardUI(finalScore);
+        gameOverDiv.appendChild(leaderboardUI);
+        
+        // Add restart button at the bottom
+        gameOverDiv.appendChild(restartButton);
+        
+        // Add event listener for restart
         restartButton.addEventListener('click', () => {
-            console.log("Restart button clicked");
-            
-            // Hide game over screen
-            gameOverDiv.style.display = 'none';
-            
-            // Get high score before disposing everything
-            const highScore = this.scoreManager.getHighScore();
-            
-            // Remember if music was playing before restart
-            const wasMusicPlaying = audioManager.musicPlaying;
-            
-            // Clean up the current game instance
-            this.dispose();
-            
-            // Create and start a completely new game with the saved high score
-            game = new SuikaGame();
-            game.init();
-            game.scoreManager.setHighScore(highScore);
-            game.animate(0);
-            
-            // Restore background music if it was playing
-            if (wasMusicPlaying) {
-                audioManager.playBackgroundMusic();
-            }
-            
-            console.log("New game instance created with high score:", highScore);
+            location.reload();
         });
     }
 
