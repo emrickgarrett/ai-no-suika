@@ -3,6 +3,7 @@
 
 import * as THREE from 'three';
 import * as CANNON from 'cannon-es';
+import { ParticleTrailSystem } from './particleSystem.js';
 
 export class FruitFactory {
     constructor(world, fruitMaterial, textureManager, scene) {
@@ -10,6 +11,7 @@ export class FruitFactory {
         this.fruitMaterial = fruitMaterial;
         this.textureManager = textureManager;
         this.scene = scene;
+        this.particleSystem = new ParticleTrailSystem(scene);
     }
 
     createFruitGeometry(type) {
@@ -781,6 +783,9 @@ export class FruitFactory {
                 this.scene.add(mesh);
             }
             
+            // Create particle trail system for this fruit
+            this.particleSystem.createParticleSystem(mesh, type.color);
+
             // Create and return the fruit object
             const fruit = {
                 mesh,
@@ -806,5 +811,10 @@ export class FruitFactory {
                 type: type
             };
         }
+    }
+
+    update() {
+        // Update particle trails
+        this.particleSystem.update();
     }
 }

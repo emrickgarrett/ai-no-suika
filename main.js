@@ -1292,6 +1292,9 @@ class SuikaGame {
             }
         }
 
+        // Update particle trails
+        this.fruitFactory.update();
+
         // Check for collisions/merges
         this.checkFruitCombinations();
         this.checkGameOver();
