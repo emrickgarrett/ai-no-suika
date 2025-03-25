@@ -5,7 +5,7 @@ export const CONTAINER_DEPTH = 4;
 
 // Game parameters
 export const COOLDOWN_DELAY = 350; // milliseconds for dropping fruit cooldown
-export const DROP_DELAY = 500; // milliseconds minimum time between drops
+export const DROP_DELAY = 300; // milliseconds minimum time between drops
 export const GAME_OVER_HEIGHT = CONTAINER_HEIGHT - 1.5; // Height threshold for game over, allowing fruits to be within the container
 
 // Material properties

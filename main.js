@@ -792,11 +792,14 @@ class SuikaGame {
     }
 
     checkGameOver() {
-        // Check for fruit above the line
+        // Check for fruit above the game over line
         const fruitAboveLine = this.fruits.some(fruit => {
-            return fruit.body.position.y > CONTAINER_HEIGHT - 1 && 
-                   fruit.body.velocity.length() < 0.2 &&
-                   Date.now() - this.lastDropTime > 1000;
+            // Check if any non-moving fruit is above the line
+            const isAboveLine = fruit.body.position.y > GAME_OVER_HEIGHT;
+            const isStable = fruit.body.velocity.lengthSquared() < 0.1; // Almost stationary
+            const isOldEnough = Date.now() - fruit.dropTime > 1000; // Fruit has been in play for 1 second
+            
+            return isAboveLine && isStable && isOldEnough;
         });
         
         // Check for fruit that has fallen out of the container
@@ -813,6 +816,8 @@ class SuikaGame {
             console.log("Game over triggered");
             if (fruitBelowContainer) {
                 console.log("Game over caused by fruit falling out of container");
+            } else {
+                console.log("Game over caused by fruit above height limit");
             }
             this.showGameOverScreen();
         }
