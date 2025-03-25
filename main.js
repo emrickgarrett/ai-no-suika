@@ -494,16 +494,16 @@ class SuikaGame {
             
             // If this fruit hasn't been used recently, give it a higher weight
             if (recentIndex === -1) {
-                return { fruit, weight: 3 }; // Higher weight for fruits not recently used
+                return { fruit, weight: 5 }; // Even higher weight for unused fruits
             } else {
                 // Decrease weight based on recency (most recent = lowest weight)
                 const recency = this.recentFruits.length - recentIndex;
-                return { fruit, weight: 3 - recency };
+                return { fruit, weight: Math.max(1, 5 - recency) }; // Ensure minimum weight of 1
             }
         });
         
         // Calculate total weight
-        const totalWeight = weightedFruits.reduce((sum, item) => sum + Math.max(0.5, item.weight), 0);
+        const totalWeight = weightedFruits.reduce((sum, item) => sum + item.weight, 0);
         
         // Select a random point within the total weight
         let randomPoint = Math.random() * totalWeight;
@@ -512,18 +512,17 @@ class SuikaGame {
         let selectedFruit = smallFruits[0]; // Default in case of errors
         
         for (const { fruit, weight } of weightedFruits) {
-            const adjustedWeight = Math.max(0.5, weight); // Ensure minimum weight
-            if (randomPoint <= adjustedWeight) {
+            if (randomPoint <= weight) {
                 selectedFruit = fruit;
                 break;
             }
-            randomPoint -= adjustedWeight;
+            randomPoint -= weight;
         }
         
-        // Update recent fruits history
-        this.recentFruits.unshift(selectedFruit);
+        // Update recent fruits list
+        this.recentFruits.push(selectedFruit);
         if (this.recentFruits.length > this.maxRecentFruits) {
-            this.recentFruits.pop();
+            this.recentFruits.shift(); // Remove oldest fruit
         }
         
         return selectedFruit;
@@ -774,11 +773,13 @@ class SuikaGame {
                         this.createFruit(nextType, midpoint);
                         combinations++;
 
-                        // Update score
-                        this.scoreManager.addPoints(nextType.points);
-
-                        // Increment combo at the merge position with next fruit's color
-                        this.comboSystem.incrementCombo(midpoint, nextType.color);
+                        // Increment combo and get multiplier
+                        const multiplier = this.comboSystem.incrementCombo(midpoint, nextType.color);
+                        
+                        // Update score with combo multiplier
+                        const basePoints = nextType.points;
+                        const bonusPoints = Math.floor(basePoints * (multiplier - 1));
+                        this.scoreManager.addPoints(basePoints + bonusPoints);
 
                         // Play merge sound
                         audioManager.playMergeSound();
@@ -1306,7 +1307,13 @@ class SuikaGame {
 
     generateNextFruit() {
         // Get a random small fruit for the next drop
+        const previousType = this.nextFruitType;
         this.nextFruitType = this.getRandomSmallFruit();
+        
+        // If we somehow got the same fruit type, try one more time
+        if (previousType && this.nextFruitType.name === previousType.name) {
+            this.nextFruitType = this.getRandomSmallFruit();
+        }
         
         // Update the next fruit display (if it exists)
         const nextFruitDisplay = document.getElementById('next-fruit');

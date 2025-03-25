@@ -31,6 +31,19 @@ export class ComboSystem {
         this.scene.add(this.comboText);
     }
 
+    // Get the current combo multiplier
+    getComboMultiplier() {
+        if (this.comboCount < 2) return 1;
+        // Increase multiplier with combo, but cap it at 5x
+        return Math.min(1 + (this.comboCount - 1) * 0.5, 5);
+    }
+
+    // Get text to display for combo multiplier
+    getComboMultiplierText() {
+        const multiplier = this.getComboMultiplier();
+        return multiplier > 1 ? `${multiplier.toFixed(1)}x` : '';
+    }
+
     incrementCombo(position, fruitColor) {
         const now = Date.now();
         if (now - this.lastComboTime > this.comboTimeout) {
@@ -45,6 +58,8 @@ export class ComboSystem {
         
         // Create combo particles with fruit color
         this.createComboParticles(position, fruitColor);
+
+        return this.getComboMultiplier();
     }
 
     updateComboText(position) {
