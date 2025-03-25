@@ -2,11 +2,11 @@
 
 class SocialShare {
     constructor() {
-        this.gameUrl = 'https://emrickgarrett.github.io/ai-no-suika/';
+        this.gameUrl = 'https://www.ainosuika.com';
         this.defaultMessage = "I scored {score} in Ai-No-Suika Game! Can you beat my score?";
         
         // Static preview image URL
-        this.previewImageUrl = 'https://emrickgarrett.github.io/ai-no-suika/main/preview.png';
+        this.previewImageUrl = 'https://www.ainosuika.com/main/preview.png';
     }
 
     /**

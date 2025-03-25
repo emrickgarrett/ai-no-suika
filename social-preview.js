@@ -65,7 +65,7 @@ for (const pos of positions) {
 // Add game URL at the bottom
 ctx.font = '30px Arial, sans-serif';
 ctx.fillStyle = '#ffffff';
-ctx.fillText('https://emrickgarrett.github.io/ai-no-suika/', canvas.width / 2, canvas.height - 50);
+ctx.fillText('https://www.ainosuika.com', canvas.width / 2, canvas.height - 50);
 
 // Draw a decorative border
 ctx.strokeStyle = '#ff9900';

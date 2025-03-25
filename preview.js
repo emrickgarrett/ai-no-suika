@@ -47,7 +47,7 @@ for (let i = 0; i < 15; i++) {
 // Add game URL at the bottom
 ctx.font = '24px Arial, sans-serif';
 ctx.fillStyle = '#ffffff';
-ctx.fillText('https://emrickgarrett.github.io/ai-no-suika/', width / 2, height - 50);
+ctx.fillText('https://www.ainosuika.com/ai-no-suika/', width / 2, height - 50);
 
 // Add decorative border
 ctx.strokeStyle = '#ff9900';
