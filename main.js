@@ -596,6 +596,9 @@ class SuikaGame {
             body.lastCollisionTime = 0;
             body.collisionCooldown = 100; // Milliseconds between sound effects
             
+            // Track when the fruit was created
+            body.creationTime = Date.now();
+            
             // Add collision event handler
             body.addEventListener('collide', (event) => {
                 if (!this.world) return; // Safety check
@@ -773,9 +776,10 @@ class SuikaGame {
             // Check if any non-moving fruit is above the line
             const isAboveLine = fruit.body.position.y > GAME_OVER_HEIGHT;
             const isStable = fruit.body.velocity.lengthSquared() < 0.1; // Almost stationary
-            const isOldEnough = Date.now() - fruit.dropTime > 1000; // Fruit has been in play for 1 second
+            const timeSinceCreation = Date.now() - fruit.body.creationTime;
+            const hasGracePeriod = timeSinceCreation < 1000; // 1 second grace period for new fruits
             
-            return isAboveLine && isStable && isOldEnough;
+            return isAboveLine && isStable && !hasGracePeriod;
         });
         
         // Check for fruit that has fallen out of the container
