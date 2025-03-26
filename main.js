@@ -1191,6 +1191,9 @@ class SuikaGame {
                 // Play drop sound
                 audioManager.playDropSound();
                 
+                // Generate next fruit type immediately
+                this.generateNextFruit();
+                
                 // Add to fruits array
                 this.fruits.push(this.currentFruit);
                 this.currentFruit = null;
