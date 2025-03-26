@@ -1053,7 +1053,7 @@ class SuikaGame {
         // Don't spawn if we already have a current fruit
         if (this.currentFruit) return;
         
-        // Create fruit if there isn't one already
+        // Generate next fruit type if we don't have one
         if (!this.nextFruitType) {
             this.generateNextFruit();
         }
@@ -1078,7 +1078,7 @@ class SuikaGame {
         this.currentFruit.body.velocity.set(0, 0, 0);
         this.currentFruit.body.angularVelocity.set(0, 0, 0);
         
-        // Generate the next fruit preview
+        // Generate the next fruit type immediately so the preview is accurate
         this.generateNextFruit();
     }
 
@@ -1190,9 +1190,6 @@ class SuikaGame {
                 
                 // Play drop sound
                 audioManager.playDropSound();
-                
-                // Generate next fruit type immediately
-                this.generateNextFruit();
                 
                 // Add to fruits array
                 this.fruits.push(this.currentFruit);
