@@ -26,6 +26,22 @@ export class AudioManager {
         // Create audio context on first user interaction to satisfy autoplay policy
         try {
             this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            
+            // Resume audio context for mobile devices
+            if (this.audioContext.state === 'suspended') {
+                const resumeAudio = async () => {
+                    await this.audioContext.resume();
+                    // Remove the event listeners once audio is running
+                    ['touchstart', 'touchend', 'click'].forEach(event => {
+                        document.removeEventListener(event, resumeAudio);
+                    });
+                };
+                
+                // Add event listeners for both touch and click events
+                ['touchstart', 'touchend', 'click'].forEach(event => {
+                    document.addEventListener(event, resumeAudio);
+                });
+            }
         } catch (e) {
             console.error("Web Audio API not supported:", e);
         }
