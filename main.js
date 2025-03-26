@@ -576,14 +576,8 @@ class SuikaGame {
         let shape;
         let body;
         
-        // Different collision shapes for different fruits
-        if (type && type.shape === 'watermelon' && type.radius > 1.5) {
-            // For watermelon, use a cylinder shape for better stacking
-            shape = new CANNON.Cylinder(radius, radius, radius * 1.5, 12);
-        } else {
-            // For other fruits, use a sphere shape
-            shape = new CANNON.Sphere(radius);
-        }
+        // Use sphere shape for all fruits for consistent behavior
+        shape = new CANNON.Sphere(radius);
         
         // Create the physical body
         if (this.world) {
@@ -1063,9 +1057,10 @@ class SuikaGame {
 
         // If we have a valid intersection point from mouse position, use it
         if (this.intersectionPoint) {
-            // Clamp within container bounds
+            // Clamp within container bounds, accounting for wall thickness (0.5) and fruit radius
             const radius = this.nextFruitType ? this.nextFruitType.radius : 0.5;
-            const maxX = (CONTAINER_WIDTH / 2) - radius;
+            const wallThickness = 0.5;
+            const maxX = (CONTAINER_WIDTH / 2) - radius - wallThickness;
             positionX = Math.max(-maxX, Math.min(maxX, this.intersectionPoint.x));
         }
         
@@ -1098,9 +1093,10 @@ class SuikaGame {
         this.raycaster.setFromCamera(this.mousePosition, this.camera);
         this.raycaster.ray.intersectPlane(this.mousePlane, this.intersectionPoint);
 
-        // Clamp position within container bounds
+        // Clamp position within container bounds, accounting for wall thickness (0.5) and fruit radius
         const radius = this.nextFruitType ? this.nextFruitType.radius : 0.5;
-        const maxX = (CONTAINER_WIDTH / 2) - radius;
+        const wallThickness = 0.5;
+        const maxX = (CONTAINER_WIDTH / 2) - radius - wallThickness;
         const clampedX = Math.max(-maxX, Math.min(maxX, this.intersectionPoint.x));
 
         if (!this.currentFruit) {
