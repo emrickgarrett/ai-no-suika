@@ -488,44 +488,26 @@ class SuikaGame {
         // Only use the first three fruit types (index 0, 1, 2)
         const smallFruits = FRUITS.slice(0, 3);
         
-        // Weight the fruits based on recent history
-        const weightedFruits = smallFruits.map((fruit, index) => {
-            // Calculate how recently this fruit was used (if at all)
-            const recentIndex = this.recentFruits.findIndex(recent => recent.name === fruit.name);
+        // If we have a recent fruit, force a different one
+        if (this.recentFruits.length > 0) {
+            const lastFruit = this.recentFruits[0];
+            // Get fruits that aren't the last one used
+            const availableFruits = smallFruits.filter(f => f.name !== lastFruit.name);
+            // Randomly select from available fruits
+            const selectedFruit = availableFruits[Math.floor(Math.random() * availableFruits.length)];
             
-            // If this fruit hasn't been used recently, give it a higher weight
-            if (recentIndex === -1) {
-                return { fruit, weight: 5 }; // Even higher weight for unused fruits
-            } else {
-                // Decrease weight based on recency (most recent = lowest weight)
-                const recency = this.recentFruits.length - recentIndex;
-                return { fruit, weight: Math.max(1, 5 - recency) }; // Ensure minimum weight of 1
+            // Update recent fruits list
+            this.recentFruits.unshift({ name: selectedFruit.name });
+            if (this.recentFruits.length > this.maxRecentFruits) {
+                this.recentFruits.pop();
             }
-        });
-        
-        // Calculate total weight
-        const totalWeight = weightedFruits.reduce((sum, item) => sum + item.weight, 0);
-        
-        // Select a random point within the total weight
-        let randomPoint = Math.random() * totalWeight;
-        
-        // Find which fruit corresponds to this random point
-        let selectedFruit = smallFruits[0]; // Default in case of errors
-        
-        for (const { fruit, weight } of weightedFruits) {
-            if (randomPoint <= weight) {
-                selectedFruit = fruit;
-                break;
-            }
-            randomPoint -= weight;
+            
+            return selectedFruit;
         }
         
-        // Update recent fruits list
-        this.recentFruits.push(selectedFruit);
-        if (this.recentFruits.length > this.maxRecentFruits) {
-            this.recentFruits.shift(); // Remove oldest fruit
-        }
-        
+        // If no recent fruits, pick any random one
+        const selectedFruit = smallFruits[Math.floor(Math.random() * smallFruits.length)];
+        this.recentFruits.unshift({ name: selectedFruit.name });
         return selectedFruit;
     }
 
@@ -1307,12 +1289,11 @@ class SuikaGame {
     generateNextFruit() {
         // Get a random small fruit for the next drop
         const previousType = this.nextFruitType;
-        this.nextFruitType = this.getRandomSmallFruit();
         
-        // If we somehow got the same fruit type, try one more time
-        if (previousType && this.nextFruitType.name === previousType.name) {
+        // Keep trying until we get a different fruit type
+        do {
             this.nextFruitType = this.getRandomSmallFruit();
-        }
+        } while (previousType && this.nextFruitType.name === previousType.name);
         
         // Update the next fruit display (if it exists)
         const nextFruitDisplay = document.getElementById('next-fruit');
