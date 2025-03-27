@@ -5,6 +5,10 @@ export default defineConfig({
   // Set the base path to work with GitHub Pages
   base: './',
   build: {
+    // Output to root directory instead of dist
+    outDir: '.',
+    // Empty the output directory before building
+    emptyOutDir: false,
     // Generate source maps for easier debugging
     sourcemap: true,
     // Configure output options
@@ -19,7 +23,11 @@ export default defineConfig({
               return 'vendor';
             }
           }
-        }
+        },
+        // Place assets in root directory
+        entryFileNames: 'assets/[name]-[hash].js',
+        chunkFileNames: 'assets/[name]-[hash].js',
+        assetFileNames: 'assets/[name]-[hash].[ext]'
       }
     }
   },

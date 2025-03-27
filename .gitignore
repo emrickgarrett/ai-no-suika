@@ -1,0 +1,23 @@
+# Dependencies
+node_modules/
+
+# Source files (since we're building directly to root for GitHub Pages)
+*.js
+!assets/*.js
+*.ts
+*.jsx
+*.tsx
+*.vue
+*.config.js
+*.json
+*.html
+!index.html
+
+# Development files
+.vscode/
+.idea/
+*.log
+.DS_Store
+
+# Keep source maps
+!*.map
