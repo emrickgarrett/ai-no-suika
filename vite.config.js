@@ -12,8 +12,7 @@ export default {
         format: 'es',
         // Ensure proper chunking and vendor splitting
         manualChunks: {
-          vendor: ['three', 'cannon-es'],
-          three_addons: ['three/examples/jsm/controls/OrbitControls.js']
+          vendor: ['three', 'three/examples/jsm/controls/OrbitControls.js', 'cannon-es'],
         },
         // Add hash to file names for cache busting
         entryFileNames: 'assets/[name]-[hash].js',
@@ -22,6 +21,14 @@ export default {
       }
     },
     // Inline smaller assets
-    assetsInlineLimit: 4096
+    assetsInlineLimit: 4096,
+    // Ensure all dependencies are included
+    commonjsOptions: {
+      include: [/node_modules/],
+      transformMixedEsModules: true
+    }
+  },
+  optimizeDeps: {
+    include: ['three', 'three/examples/jsm/controls/OrbitControls.js', 'cannon-es']
   }
 }
