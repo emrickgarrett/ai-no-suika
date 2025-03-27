@@ -10,8 +10,11 @@ export default {
       output: {
         // Use ES modules for modern browsers
         format: 'es',
-        // Ensure proper chunking 
-        manualChunks: undefined,
+        // Ensure proper chunking and vendor splitting
+        manualChunks: {
+          vendor: ['three', 'cannon-es'],
+          three_addons: ['three/examples/jsm/controls/OrbitControls.js']
+        },
         // Add hash to file names for cache busting
         entryFileNames: 'assets/[name]-[hash].js',
         chunkFileNames: 'assets/[name]-[hash].js',
