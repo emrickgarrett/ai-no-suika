@@ -1,5 +1,7 @@
 // vite.config.js
-export default {
+import { defineConfig } from 'vite';
+
+export default defineConfig({
   // Set the base path to work with GitHub Pages
   base: './',
   build: {
@@ -11,24 +13,17 @@ export default {
         // Use ES modules for modern browsers
         format: 'es',
         // Ensure proper chunking and vendor splitting
-        manualChunks: {
-          vendor: ['three', 'three/examples/jsm/controls/OrbitControls.js', 'cannon-es'],
-        },
-        // Add hash to file names for cache busting
-        entryFileNames: 'assets/[name]-[hash].js',
-        chunkFileNames: 'assets/[name]-[hash].js',
-        assetFileNames: 'assets/[name]-[hash].[ext]'
+        manualChunks: (id) => {
+          if (id.includes('node_modules')) {
+            if (id.includes('three') || id.includes('cannon-es')) {
+              return 'vendor';
+            }
+          }
+        }
       }
-    },
-    // Inline smaller assets
-    assetsInlineLimit: 4096,
-    // Ensure all dependencies are included
-    commonjsOptions: {
-      include: [/node_modules/],
-      transformMixedEsModules: true
     }
   },
   optimizeDeps: {
-    include: ['three', 'three/examples/jsm/controls/OrbitControls.js', 'cannon-es']
+    include: ['three', 'cannon-es', 'three/examples/jsm/controls/OrbitControls.js']
   }
-}
+});
