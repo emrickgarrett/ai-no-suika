@@ -1061,10 +1061,9 @@ class SuikaGame {
 
         // If we have a valid intersection point from mouse position, use it
         if (this.intersectionPoint) {
-            // Clamp within container bounds, accounting for wall thickness (0.5) and fruit radius
+            // Only clamp based on fruit radius, allowing drops closer to edges
             const radius = this.nextFruitType ? this.nextFruitType.radius : 0.5;
-            const wallThickness = 0.5;
-            const maxX = (CONTAINER_WIDTH / 2) - radius - wallThickness;
+            const maxX = (CONTAINER_WIDTH / 2) - radius;
             positionX = Math.max(-maxX, Math.min(maxX, this.intersectionPoint.x));
         }
         
@@ -1097,10 +1096,9 @@ class SuikaGame {
         this.raycaster.setFromCamera(this.mousePosition, this.camera);
         this.raycaster.ray.intersectPlane(this.mousePlane, this.intersectionPoint);
 
-        // Clamp position within container bounds, accounting for wall thickness (0.5) and fruit radius
+        // Only clamp based on fruit radius, allowing drops closer to edges
         const radius = this.nextFruitType ? this.nextFruitType.radius : 0.5;
-        const wallThickness = 0.5;
-        const maxX = (CONTAINER_WIDTH / 2) - radius - wallThickness;
+        const maxX = (CONTAINER_WIDTH / 2) - radius;
         const clampedX = Math.max(-maxX, Math.min(maxX, this.intersectionPoint.x));
 
         if (!this.currentFruit) {
