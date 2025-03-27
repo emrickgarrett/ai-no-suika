@@ -90,19 +90,26 @@
             background-color: #45a049;
         }
         .jam-link {
-            font-family: 'system-ui', sans-serif;
             position: fixed;
-            bottom: -1px;
-            right: -1px;
-            padding: 7px;
-            font-size: 14px;
-            font-weight: bold;
+            bottom: 20px;
+            right: 20px;
+            padding: 8px 15px;
             background: #fff;
             color: #000;
             text-decoration: none;
             border-top-left-radius: 12px;
             z-index: 10000;
             border: 1px solid #fff;
+        }
+        .grokade-badge {
+            position: fixed;
+            bottom: 70px;
+            right: 20px;
+            z-index: 10000;
+            transition: transform 0.2s;
+        }
+        .grokade-badge:hover {
+            transform: scale(1.05);
         }
         .social-share-container {
             margin-top: 15px;
@@ -123,8 +130,8 @@
             transform: scale(1.05);
         }
     </style>
-  <link rel="modulepreload" crossorigin href="./assets/vendor-ewAQsO2N-BCAUWfwF.js">
-  <script type="module" crossorigin src="./assets/index-Bvd0TnOX.js"></script>
+  <link rel="modulepreload" crossorigin href="./assets/vendor-ewAQsO2N-BCAUWfwF-BCAUWfwF.js">
+  <script type="module" crossorigin src="./assets/index-BuU3ID9_.js"></script>
 </head>
 <body>
     <div id="score">Score: 0</div>
@@ -133,6 +140,9 @@
         <h1>Game Over!</h1>
         <button id="restart-button">Play Again</button>
     </div>
+    <a href="https://grokade.com/game/76e2f8bc-8999-4163-b9d6-5d4340042fbe" target="_blank" rel="noopener noreferrer" title="Featured on Grokade" class="grokade-badge">
+        <img src="https://grokade.com/images/badges/grokade-vibecoded-purple.svg" alt="Featured on Grokade" width="120" height="40" style="padding: 5px;" />
+    </a>
     <a target="_blank" href="https://jam.pieter.com" class="jam-link">🕹️ Vibe Jam 2025</a>
     
     <!-- Hidden canvas for generating social share images -->
