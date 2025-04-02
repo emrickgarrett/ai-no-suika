@@ -50,8 +50,8 @@ export class AudioManager {
         this.loadSounds();
         
         // Create UI controls
-        this.createMusicControls();
-        this.createVolumeControls();
+        //this.createMusicControls();
+        //this.createVolumeControls();
         
         // Setup music nodes
         this.createBackgroundMusic();
@@ -295,78 +295,78 @@ export class AudioManager {
     /**
      * Create volume control sliders
      */
-    createVolumeControls() {
-        // Create container for volume controls
-        const volumeControls = document.createElement('div');
-        volumeControls.style.position = 'absolute';
-        volumeControls.style.bottom = '10px';
-        volumeControls.style.left = '10px';
-        volumeControls.style.zIndex = '1000';
-        volumeControls.style.backgroundColor = 'rgba(0, 0, 0, 0.6)';
-        volumeControls.style.padding = '10px';
-        volumeControls.style.borderRadius = '4px';
-        volumeControls.style.fontFamily = 'Arial, sans-serif';
-        volumeControls.style.color = 'white';
-        volumeControls.style.display = 'flex';
-        volumeControls.style.flexDirection = 'column';
-        volumeControls.style.gap = '8px';
+    // createVolumeControls() {
+    //     // Create container for volume controls
+    //     const volumeControls = document.createElement('div');
+    //     volumeControls.style.position = 'absolute';
+    //     volumeControls.style.bottom = '10px';
+    //     volumeControls.style.left = '10px';
+    //     volumeControls.style.zIndex = '1000';
+    //     volumeControls.style.backgroundColor = 'rgba(0, 0, 0, 0.6)';
+    //     volumeControls.style.padding = '10px';
+    //     volumeControls.style.borderRadius = '4px';
+    //     volumeControls.style.fontFamily = 'Arial, sans-serif';
+    //     volumeControls.style.color = 'white';
+    //     volumeControls.style.display = 'flex';
+    //     volumeControls.style.flexDirection = 'column';
+    //     volumeControls.style.gap = '8px';
         
-        // Volume control for sound effects
-        const soundEffectsContainer = document.createElement('div');
-        soundEffectsContainer.style.display = 'flex';
-        soundEffectsContainer.style.alignItems = 'center';
-        soundEffectsContainer.style.gap = '8px';
+    //     // Volume control for sound effects
+    //     const soundEffectsContainer = document.createElement('div');
+    //     soundEffectsContainer.style.display = 'flex';
+    //     soundEffectsContainer.style.alignItems = 'center';
+    //     soundEffectsContainer.style.gap = '8px';
         
-        const soundLabel = document.createElement('label');
-        soundLabel.textContent = '🔊 Effects:';
-        soundLabel.style.width = '80px';
+    //     const soundLabel = document.createElement('label');
+    //     soundLabel.textContent = '🔊 Effects:';
+    //     soundLabel.style.width = '80px';
         
-        const soundSlider = document.createElement('input');
-        soundSlider.type = 'range';
-        soundSlider.min = '0';
-        soundSlider.max = '100';
-        soundSlider.value = Math.round(this.soundEffectsVolume * 100);
-        soundSlider.style.width = '100px';
+    //     const soundSlider = document.createElement('input');
+    //     soundSlider.type = 'range';
+    //     soundSlider.min = '0';
+    //     soundSlider.max = '100';
+    //     soundSlider.value = Math.round(this.soundEffectsVolume * 100);
+    //     soundSlider.style.width = '100px';
         
-        soundSlider.addEventListener('input', (e) => {
-            this.soundEffectsVolume = parseInt(e.target.value) / 100;
-        });
+    //     soundSlider.addEventListener('input', (e) => {
+    //         this.soundEffectsVolume = parseInt(e.target.value) / 100;
+    //     });
         
-        soundEffectsContainer.appendChild(soundLabel);
-        soundEffectsContainer.appendChild(soundSlider);
+    //     soundEffectsContainer.appendChild(soundLabel);
+    //     soundEffectsContainer.appendChild(soundSlider);
         
-        // Volume control for music
-        const musicVolumeContainer = document.createElement('div');
-        musicVolumeContainer.style.display = 'flex';
-        musicVolumeContainer.style.alignItems = 'center';
-        musicVolumeContainer.style.gap = '8px';
+    //     // Volume control for music
+    //     const musicVolumeContainer = document.createElement('div');
+    //     musicVolumeContainer.style.display = 'flex';
+    //     musicVolumeContainer.style.alignItems = 'center';
+    //     musicVolumeContainer.style.gap = '8px';
         
-        const musicLabel = document.createElement('label');
-        musicLabel.textContent = '🎵 Music:';
-        musicLabel.style.width = '80px';
+    //     const musicLabel = document.createElement('label');
+    //     musicLabel.textContent = '🎵 Music:';
+    //     musicLabel.style.width = '80px';
         
-        const musicSlider = document.createElement('input');
-        musicSlider.type = 'range';
-        musicSlider.min = '0';
-        musicSlider.max = '100';
-        musicSlider.value = Math.round(this.musicVolume * 100);
-        musicSlider.style.width = '100px';
+    //     const musicSlider = document.createElement('input');
+    //     musicSlider.type = 'range';
+    //     musicSlider.min = '0';
+    //     musicSlider.max = '100';
+    //     musicSlider.value = Math.round(this.musicVolume * 100);
+    //     musicSlider.style.width = '100px';
         
-        musicSlider.addEventListener('input', (e) => {
-            this.musicVolume = parseInt(e.target.value) / 100;
-            this.updateMusicVolume();
-        });
+    //     musicSlider.addEventListener('input', (e) => {
+    //         this.musicVolume = parseInt(e.target.value) / 100;
+    //         this.updateMusicVolume();
+    //     });
         
-        musicVolumeContainer.appendChild(musicLabel);
-        musicVolumeContainer.appendChild(musicSlider);
+    //     musicVolumeContainer.appendChild(musicLabel);
+    //     musicVolumeContainer.appendChild(musicSlider);
         
-        // Add controls to container
-        volumeControls.appendChild(soundEffectsContainer);
-        volumeControls.appendChild(musicVolumeContainer);
+    //     // Add controls to container
+    //     volumeControls.appendChild(soundEffectsContainer);
+    //     volumeControls.appendChild(musicVolumeContainer);
         
-        // Add container to document
-        document.body.appendChild(volumeControls);
-    }
+    //     // Add container to document
+    //     document.body.appendChild(volumeControls);
+    // }
     
     /**
      * Update music volume
