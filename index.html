@@ -129,9 +129,31 @@
             opacity: 0.9;
             transform: scale(1.05);
         }
+        #mobile-audio-play {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 20px 40px;
+            background-color: #4CAF50;
+            color: white;
+            font-size: 24px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            z-index: 1000;
+            display: none; /* Initially hidden, will be shown only on mobile via JS */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: translate(-50%, -50%) scale(1); }
+            50% { transform: translate(-50%, -50%) scale(1.05); }
+            100% { transform: translate(-50%, -50%) scale(1); }
+        }
     </style>
-  <link rel="modulepreload" crossorigin href="./assets/vendor-ewAQsO2N-BCAUWfwF-BCAUWfwF.js">
-  <script type="module" crossorigin src="./assets/index-BuU3ID9_.js"></script>
+  <link rel="modulepreload" crossorigin href="./assets/vendor-ewAQsO2N-BCAUWfwF-BCAUWfwF-BCAUWfwF.js">
+  <script type="module" crossorigin src="./assets/index-NgC0RfAB.js"></script>
 </head>
 <body>
     <div id="score">Score: 0</div>
@@ -140,6 +162,10 @@
         <h1>Game Over!</h1>
         <button id="restart-button">Play Again</button>
     </div>
+    
+    <!-- Mobile audio play button -->
+    <button id="mobile-audio-play">TAP TO ENABLE SOUND</button>
+    
     <a href="https://grokade.com/game/76e2f8bc-8999-4163-b9d6-5d4340042fbe" target="_blank" rel="noopener noreferrer" title="Featured on Grokade" class="grokade-badge">
         <img src="https://grokade.com/images/badges/grokade-vibecoded-purple.svg" alt="Featured on Grokade" width="120" height="40" style="padding: 5px;" />
     </a>
@@ -147,6 +173,40 @@
     
     <!-- Hidden canvas for generating social share images -->
     <canvas id="share-canvas" width="1200" height="630" style="display: none;"></canvas>
+
+    <!-- Mobile audio initialization script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Function to detect mobile devices
+            function isMobileDevice() {
+                return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) 
+                    || (navigator.maxTouchPoints && navigator.maxTouchPoints > 2);
+            }
+            
+            // Show the play button only on mobile devices
+            const mobileAudioBtn = document.getElementById('mobile-audio-play');
+            if (isMobileDevice()) {
+                mobileAudioBtn.style.display = 'block';
+            }
+            
+            // Handle audio initialization when button is clicked
+            mobileAudioBtn.addEventListener('click', function() {
+                // This will trigger any audio context initialization
+                // The AudioManager class should be handling the actual audio context creation
+                const audioEvent = new Event('audioinit');
+                document.dispatchEvent(audioEvent);
+                
+                // Hide the button after user interaction
+                mobileAudioBtn.style.display = 'none';
+                
+                // Create and dispatch standard events that the AudioManager might be listening for
+                ['touchstart', 'touchend', 'mousedown', 'keydown'].forEach(eventType => {
+                    const event = new Event(eventType);
+                    document.dispatchEvent(event);
+                });
+            });
+        });
+    </script>
 
     <!-- Main JavaScript import -->
 </body>
